@@ -286,7 +286,7 @@ class Program
         double variance = (Math.Pow(49, 2) - 1) / 12.0; // Wariancja ≈ 200.00
 
         // Odchylenie standardowe = pierwiastek kwadratowy z wariancji
-        double stdDev = Math.Sqrt(variance); // Odchylenie standardowe ≈ 14.14
+        double stdDev = 14.1421356237309504880168872420969807856967187537694807317667973799073247846210703885038753432764157273; // Odchylenie standardowe ≈ 14.14
 
         // Przygotowanie tabeli wyników do zapisu.
         List<string> metricsTable = new List<string>();
