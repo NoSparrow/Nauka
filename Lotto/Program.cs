@@ -76,7 +76,7 @@ class Program
         Function8_Dummy();
         Function9_Dummy();
         Function10_Dummy();
-        
+
         Console.WriteLine("Program zakończony.");
     }
 
@@ -100,7 +100,7 @@ class Program
             string input = Console.ReadLine().Trim(); // Czytanie wpisu użytkownika i usunięcie spacji.
             if (validOptions.Contains(input)) // Sprawdzanie, czy wpisana opcja jest na liście dozwolonych.
                 return input; // Jeśli tak, zwracamy odpowiedź i kończymy działanie funkcji.
-            
+
             // Jeśli odpowiedź jest błędna, wyświetlamy komunikat i pętla się powtarza.
             Console.WriteLine("Niepoprawna odpowiedź. Proszę wybrać: " + string.Join(" lub ", validOptions));
         }
@@ -331,9 +331,102 @@ class Program
     // Funkcja 5: Przetwarzanie danych losowania (obliczanie Z-score).
     static bool Function5_ProcessData()
     {
-        Console.WriteLine("Funkcja 5: Przetwarzanie danych sekwencyjne...");
-        return false;
-       
+        Console.WriteLine("Funkcja 5: Generowanie pliku AnalizaDanych1.txt.");
+
+        // Pytanie o uruchomienie funkcji
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję analizy danych? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 5 została pominięta.");
+            return true; // Kontynuujemy program, ale bez wykonywania tej funkcji
+        }
+
+        Console.WriteLine("Rozpoczynam analizę danych...");
+
+        // Ścieżki do plików
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+
+        // Dane teoretyczne
+        const double theoreticalMeanSingle = 25.0;
+        const double theoreticalMeanCombo = 150.0;
+        const double theoreticalStdDev = 14.142135623730951;
+
+        // Wczytanie danych z pliku PobraneDane.txt (pomijamy nagłówek)
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine("Błąd: Plik PobraneDane.txt nie istnieje. Przerywam analizę.");
+            return false;
+        }
+
+        var allDataLines = File.ReadAllLines(filePath).Skip(1).ToList();
+        List<string> analysisLines = new List<string>();
+
+        // Nagłówek tabeli
+        analysisLines.Add(" Lp. | Data        | Zwycięska kombinacja | Suma | Odl. (od 150) | Z-score (losowania) | Z-score L1 | Z-score L2 | Z-score L3 | Z-score L4 | Z-score L5 | Z-score L6 | Odl. L1 | Odl. L2 | Odl. L3 | Odl. L4 | Odl. L5 | Odl. L6");
+        analysisLines.Add("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+        // Przetwarzanie każdego losowania
+        foreach (var line in allDataLines)
+        {
+            try
+            {
+                var parts = line.Split('|');
+                if (parts.Length < 3) continue;
+
+                string lp = parts[0].Trim();
+                string date = parts[1].Trim();
+                string numbersString = parts[2].Trim();
+
+                List<int> numbers = numbersString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                 .Select(int.Parse).ToList();
+
+                // Obliczenia dla całego losowania
+                int sumOfNumbers = numbers.Sum();
+                double distanceToMeanCombo = sumOfNumbers - theoreticalMeanCombo;
+                double zScoreCombo = numbers.Select(n => (n - theoreticalMeanSingle) / theoreticalStdDev).Sum() / Math.Sqrt(numbers.Count);
+
+                // Obliczenia dla poszczególnych liczb
+                List<double> zScores = new List<double>();
+                List<double> distances = new List<double>();
+                foreach (var number in numbers)
+                {
+                    double distance = number - theoreticalMeanSingle;
+                    double zScore = distance / theoreticalStdDev;
+                    zScores.Add(zScore);
+                    distances.Add(distance);
+                }
+
+                // Generowanie wiersza tabeli z precyzyjnym formatowaniem
+                string row =
+                    $"{lp.PadRight(4)}| {date.PadRight(12)}| {numbersString.PadRight(21)}| {sumOfNumbers.ToString().PadRight(5)}| " +
+                    $"{distanceToMeanCombo.ToString().PadRight(13)}| {zScoreCombo.ToString("F10").PadRight(20)}| " +
+                    $"{zScores[0].ToString("F2").PadRight(11)}| {zScores[1].ToString("F2").PadRight(11)}| " +
+                    $"{zScores[2].ToString("F2").PadRight(11)}| {zScores[3].ToString("F2").PadRight(11)}| " +
+                    $"{zScores[4].ToString("F2").PadRight(11)}| {zScores[5].ToString("F2").PadRight(11)}| " +
+                    $"{distances[0].ToString("F0").PadRight(8)}| {distances[1].ToString("F0").PadRight(8)}| " +
+                    $"{distances[2].ToString("F0").PadRight(8)}| {distances[3].ToString("F0").PadRight(8)}| " +
+                    $"{distances[4].ToString("F0").PadRight(8)}| {distances[5].ToString("F0").PadRight(8)}";
+
+                analysisLines.Add(row);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd podczas przetwarzania wiersza: {line}. Szczegóły: {ex.Message}");
+            }
+        }
+
+        // Zapisanie wyników do nowego pliku
+        try
+        {
+            File.WriteAllLines(outputFilePath, analysisLines);
+            Console.WriteLine($"Analiza zakończona! Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas zapisu pliku: {outputFilePath}. Szczegóły: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
 
     // --- Funkcje Dummy (Atrapy) ---
@@ -370,14 +463,14 @@ class Program
         HttpClient client = new HttpClient();
         // Pobranie całego kodu źródłowego strony jako tekst.
         var response = await client.GetStringAsync(url);
-        
+
         // **Tutaj zaczyna się użycie HtmlAgilityPack.**
         HtmlDocument doc = new HtmlDocument();
         doc.LoadHtml(response); // Ładowanie pobranego HTML do obiektu HtmlAgilityPack.
 
         // Szukanie w HTML elementów, które mają klasę 'lista_lat' i są linkami (tag <a>).
         var nodes = doc.DocumentNode.SelectNodes("//p[contains(@class, 'lista_lat')]//a");
-        
+
         if (nodes != null)
         {
             foreach (var node in nodes)
@@ -399,14 +492,14 @@ class Program
         // Pobranie kodu strony dla danego roku.
         // .Result blokuje działanie, dopóki pobieranie się nie skończy (używane w Task.Run, aby funkcja była synchroniczna).
         var response = client.GetStringAsync(yearUrl).Result;
-        
+
         // Ponownie, użycie HtmlAgilityPack do analizy HTML.
         HtmlDocument doc = new HtmlDocument();
         doc.LoadHtml(response);
-        
+
         // Szukanie w HTML listy losowań.
         var draws = doc.DocumentNode.SelectNodes("//div[@class='lista_ostatnich_losowan']/ul");
-        
+
         if (draws != null)
         {
             foreach (var draw in draws)
@@ -414,7 +507,7 @@ class Program
                 // Znajdowanie daty i liczb dla każdego losowania.
                 var dateNode = draw.SelectSingleNode(".//li[contains(@class, 'date_in_list')]");
                 var numberNodes = draw.SelectNodes(".//li[contains(@class, 'numbers_in_list')]");
-                
+
                 if (dateNode != null && numberNodes != null)
                 {
                     // Konwersja tekstu (liczb) na liczby całkowite (int).
