@@ -751,7 +751,7 @@ class Program
         string[] positivePerc = new string[7];
         string[] negativePerc = new string[7];
         string[] zeroPerc = new string[7];
-        
+
         for (int i = 0; i < 7; i++)
         {
             int total = zScoresByColumn[i].Count;
@@ -762,7 +762,7 @@ class Program
             positiveCounts[i] = positive.ToString();
             negativeCounts[i] = negative.ToString();
             zeroCounts[i] = zero.ToString();
-            
+
             positivePerc[i] = ((double)positive / total).ToString("P2");
             negativePerc[i] = ((double)negative / total).ToString("P2");
             zeroPerc[i] = ((double)zero / total).ToString("P2");
@@ -771,7 +771,7 @@ class Program
         string rowPositiveCount = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
                                                 "Liczba dodatnich (+)",
                                                 positiveCounts[0], positiveCounts[1], positiveCounts[2], positiveCounts[3], positiveCounts[4], positiveCounts[5], positiveCounts[6]);
-        
+
         string rowNegativeCount = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
                                                 "Liczba ujemnych (-)",
                                                 negativeCounts[0], negativeCounts[1], negativeCounts[2], negativeCounts[3], negativeCounts[4], negativeCounts[5], negativeCounts[6]);
@@ -783,11 +783,11 @@ class Program
         string rowPositivePerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
                                                 "Procent dodatnich (+)",
                                                 positivePerc[0], positivePerc[1], positivePerc[2], positivePerc[3], positivePerc[4], positivePerc[5], positivePerc[6]);
-        
+
         string rowNegativePerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
                                                 "Procent ujemnych (-)",
                                                 negativePerc[0], negativePerc[1], negativePerc[2], negativePerc[3], negativePerc[4], negativePerc[5], negativePerc[6]);
-        
+
         string rowZeroPerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
                                             "Procent zerowych (0)",
                                             zeroPerc[0], zeroPerc[1], zeroPerc[2], zeroPerc[3], zeroPerc[4], zeroPerc[5], zeroPerc[6]);
@@ -859,9 +859,60 @@ class Program
         return data.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
     }
 
+    // Funkcja 9: Filtrowanie kombinacji na podstawie analizy Z-score
     static void Function9_Dummy()
     {
-        Console.WriteLine("To jest funkcja nr 9.");
+        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku WszystkieKombinacjeZscore.txt na podstawie analizy Z-score z pliku Pytania.txt.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 9 została pominięta.");
+            return;
+        }
+
+        Console.WriteLine("Rozpoczynam kopiowanie danych w celu testu...");
+
+        string allCombinationsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieKombinacjeZscore.txt");
+        string questionsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Pytania.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
+
+        if (!File.Exists(allCombinationsFilePath))
+        {
+            Console.WriteLine("Błąd: Plik WszystkieKombinacjeZscore.txt nie istnieje. Uruchom najpierw Funkcję 7.");
+            return;
+        }
+        if (!File.Exists(questionsFilePath))
+        {
+            Console.WriteLine("Błąd: Plik Pytania.txt nie istnieje. Uruchom najpierw Funkcję 8.");
+            return;
+        }
+
+        // --- UWAGA: PONIŻSZY BLOK KODU JEST TYMCZASOWY DO TESTOWANIA.
+        // --- JEŚLI TO DZIAŁA, OZNACZA TO, ŻE PROBLEM JEST W FILTROWANIU.
+
+        try
+        {
+            int linesProcessed = 0;
+            using (StreamWriter writer = new StreamWriter(outputFilePath, false)) // false = nadpisz plik
+            {
+                foreach (var line in File.ReadLines(allCombinationsFilePath))
+                {
+                    writer.WriteLine(line);
+                    linesProcessed++;
+                }
+            }
+
+            Console.WriteLine($"Kopiowanie zakończone! Skopiowano {linesProcessed} wierszy. Plik: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {allCombinationsFilePath}. Szczegóły: {ex.Message}");
+        }
+
+        // Możesz usunąć cały ten blok i przywrócić go później
+        // jeśli chcesz kontynuować testy z filtrowaniem.
+
+        // --- KONIEC BLOKU TESTOWEGO ---
     }
     static void Function10_Dummy()
     {
