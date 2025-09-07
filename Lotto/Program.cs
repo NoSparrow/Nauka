@@ -744,36 +744,61 @@ class Program
         reportLines.Add(new string('-', header.Length));
 
         // Pytanie 3: Liczba dodatnich/ujemnych/zerowych
-        string[] counts = new string[7];
-        string[] percentages = new string[7];
+        string[] positiveCounts = new string[7];
+        string[] negativeCounts = new string[7];
+        string[] zeroCounts = new string[7];
+
+        string[] positivePerc = new string[7];
+        string[] negativePerc = new string[7];
+        string[] zeroPerc = new string[7];
+        
         for (int i = 0; i < 7; i++)
         {
             int total = zScoresByColumn[i].Count;
             int positive = zScoresByColumn[i].Count(z => z > 0);
             int negative = zScoresByColumn[i].Count(z => z < 0);
             int zero = total - positive - negative;
-            counts[i] = $"{positive} (+), {negative} (-), {zero} (0)";
-            percentages[i] = $"{((double)positive / total):P2} (+), {((double)negative / total):P2} (-), {((double)zero / total):P2} (0)";
-        }
-        string rowCounts = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
-                                         "Liczba (+), (-), (0)",
-                                         counts[0], counts[1], counts[2], counts[3], counts[4], counts[5], counts[6]);
-        string rowPerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
-                                         "Procent (+), (-), (0)",
-                                         percentages[0], percentages[1], percentages[2], percentages[3], percentages[4], percentages[5], percentages[6]);
-        reportLines.Add(rowCounts);
-        reportLines.Add(rowPerc);
-        reportLines.Add(new string('-', header.Length));
 
-        // Pytanie 4: Najdłuższe serie
-        string rowMaxPos = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
-                                         "Najdłuższa seria (+)",
-                                         maxPositiveStreak[0], maxPositiveStreak[1], maxPositiveStreak[2], maxPositiveStreak[3], maxPositiveStreak[4], maxPositiveStreak[5], maxPositiveStreak[6]);
-        string rowMaxNeg = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
-                                         "Najdłuższa seria (-)",
-                                         maxNegativeStreak[0], maxNegativeStreak[1], maxNegativeStreak[2], maxNegativeStreak[3], maxNegativeStreak[4], maxNegativeStreak[5], maxNegativeStreak[6]);
-        reportLines.Add(rowMaxPos);
-        reportLines.Add(rowMaxNeg);
+            positiveCounts[i] = positive.ToString();
+            negativeCounts[i] = negative.ToString();
+            zeroCounts[i] = zero.ToString();
+            
+            positivePerc[i] = ((double)positive / total).ToString("P2");
+            negativePerc[i] = ((double)negative / total).ToString("P2");
+            zeroPerc[i] = ((double)zero / total).ToString("P2");
+        }
+
+        string rowPositiveCount = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
+                                                "Liczba dodatnich (+)",
+                                                positiveCounts[0], positiveCounts[1], positiveCounts[2], positiveCounts[3], positiveCounts[4], positiveCounts[5], positiveCounts[6]);
+        
+        string rowNegativeCount = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
+                                                "Liczba ujemnych (-)",
+                                                negativeCounts[0], negativeCounts[1], negativeCounts[2], negativeCounts[3], negativeCounts[4], negativeCounts[5], negativeCounts[6]);
+
+        string rowZeroCount = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
+                                            "Liczba zerowych (0)",
+                                            zeroCounts[0], zeroCounts[1], zeroCounts[2], zeroCounts[3], zeroCounts[4], zeroCounts[5], zeroCounts[6]);
+
+        string rowPositivePerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
+                                                "Procent dodatnich (+)",
+                                                positivePerc[0], positivePerc[1], positivePerc[2], positivePerc[3], positivePerc[4], positivePerc[5], positivePerc[6]);
+        
+        string rowNegativePerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
+                                                "Procent ujemnych (-)",
+                                                negativePerc[0], negativePerc[1], negativePerc[2], negativePerc[3], negativePerc[4], negativePerc[5], negativePerc[6]);
+        
+        string rowZeroPerc = string.Format("{0,-30}|{1,-20}|{2,-11}|{3,-11}|{4,-11}|{5,-11}|{6,-11}|{7,-11}",
+                                            "Procent zerowych (0)",
+                                            zeroPerc[0], zeroPerc[1], zeroPerc[2], zeroPerc[3], zeroPerc[4], zeroPerc[5], zeroPerc[6]);
+
+        reportLines.Add(rowPositiveCount);
+        reportLines.Add(rowNegativeCount);
+        reportLines.Add(rowZeroCount);
+        reportLines.Add(new string('-', header.Length));
+        reportLines.Add(rowPositivePerc);
+        reportLines.Add(rowNegativePerc);
+        reportLines.Add(rowZeroPerc);
         reportLines.Add(new string('-', header.Length));
 
         // Pytanie 5: Powtarzające się Z-score
