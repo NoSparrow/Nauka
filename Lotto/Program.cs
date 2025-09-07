@@ -360,7 +360,7 @@ class Program
         var allDataLines = File.ReadAllLines(filePath).Skip(1).ToList();
         List<string> analysisLines = new List<string>();
 
-       // Nagłówek tabeli (linia do podmienienia)
+        // Nagłówek tabeli (linia do podmienienia)
         analysisLines.Add(" Lp.| Data        | Zwycięska kombinacja | Suma | Odl. (od 150)| Z-score (losowania)| Z-score L1 | Z-score L2 | Z-score L3 | Z-score L4 | Z-score L5 | Z-score L6 | Odl. L1 | Odl. L2 | Odl. L3 | Odl. L4 | Odl. L5 | Odl. L6");
 
         // Separator (linia do podmienienia)
@@ -422,14 +422,151 @@ class Program
 
     // --- Funkcje Dummy (Atrapy) ---
 
-    // Funkcje 6 do 10, które na razie nie wykonują żadnych skomplikowanych operacji.
+    // Funkcje 6 do 10
+    // Funkcja 6: Generowanie pliku ze wszystkimi możliwymi kombinacjami Lotto.
     static void Function6_Dummy()
     {
-        Console.WriteLine("To jest funkcja nr 6.");
+        Console.WriteLine("Funkcja 6: Generowanie pliku ze wszystkimi możliwymi kombinacjami Lotto.");
+
+        // Pytanie o uruchomienie funkcji
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję generowania kombinacji? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 6 została pominięta.");
+            return;
+        }
+
+        Console.WriteLine("Rozpoczynam generowanie wszystkich możliwych kombinacji...");
+
+        string combinationsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieMożliweKombinacje.txt");
+        List<string> combinations = new List<string>();
+
+        // Nagłówek tabeli
+        combinations.Add(" L1 | L2 | L3 | L4 | L5 | L6 ");
+        combinations.Add("-----------------------------");
+
+        // Obliczenia wszystkich kombinacji 6 z 49
+        const int n = 49;
+        const int k = 6;
+
+        int[] result = new int[k];
+        GenerateCombinations(1, n, k, result, 0, combinations);
+
+        // Zapisanie kombinacji do pliku
+        try
+        {
+            File.WriteAllLines(combinationsFilePath, combinations);
+            Console.WriteLine($"Generowanie zakończone! Wszystkie {combinations.Count - 2} kombinacje zapisano w pliku: {combinationsFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas zapisu pliku: {combinationsFilePath}. Szczegóły: {ex.Message}");
+        }
+
+        return;
     }
+
+    // Rekurencyjna funkcja do generowania kombinacji bez powtórzeń
+    static void GenerateCombinations(int startNum, int n, int k, int[] result, int index, List<string> combinations)
+    {
+        if (index == k)
+        {
+            // Formatowanie wiersza z kombinacją, wyrównując liczby do prawej
+            string line = string.Format(
+                "{0,3} |{1,3} |{2,3} |{3,3} |{4,3} |{5,3} ",
+                result[0], result[1], result[2], result[3], result[4], result[5]
+            );
+            combinations.Add(line);
+            return;
+        }
+
+        for (int i = startNum; i <= n; i++)
+        {
+            result[index] = i;
+            GenerateCombinations(i + 1, n, k, result, index + 1, combinations);
+        }
+    }
+    // Funkcja 7: Generowanie pliku ze statystyczną analizą wszystkich możliwych kombinacji Lotto.
     static void Function7_Dummy()
     {
-        Console.WriteLine("To jest funkcja nr 7.");
+        Console.WriteLine("Funkcja 7: Generowanie pliku ze statystyczną analizą wszystkich możliwych kombinacji.");
+
+        // Pytanie o uruchomienie funkcji
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję analizy wszystkich kombinacji? Może to potrwać kilka minut. Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 7 została pominięta.");
+            return;
+        }
+
+        Console.WriteLine("Rozpoczynam analizę wszystkich kombinacji...");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieMożliweKombinacje.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieKombinacjeZscore.txt");
+
+        // Dane teoretyczne
+        const double theoreticalMeanSingle = 25.0;
+        const double theoreticalMeanCombo = 150.0;
+        const double theoreticalStdDev = 14.142135623730951;
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine("Błąd: Plik WszystkieMożliweKombinacje.txt nie istnieje. Uruchom najpierw Funkcję 6.");
+            return;
+        }
+
+        var allCombinations = File.ReadAllLines(inputFilePath).ToList();
+        List<string> analysisLines = new List<string>();
+
+        // Nagłówek tabeli
+        analysisLines.Add(" L1 | L2 | L3 | L4 | L5 | L6 | Suma | Odl. (od 150)| Z-score (losowania)| Z-score L1 | Z-score L2 | Z-score L3 | Z-score L4 | Z-score L5 | Z-score L6 | Odl. L1 | Odl. L2 | Odl. L3 | Odl. L4 | Odl. L5 | Odl. L6");
+        analysisLines.Add("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+        // Przetwarzanie każdej kombinacji (pomijamy nagłówek i separator)
+        foreach (var line in allCombinations.Skip(2))
+        {
+            try
+            {
+                List<int> numbers = line.Split('|')
+                                        .Select(s => s.Trim())
+                                        .Select(int.Parse)
+                                        .ToList();
+
+                // Obliczenia dla całej kombinacji
+                int sumOfNumbers = numbers.Sum();
+                double distanceToMeanCombo = sumOfNumbers - theoreticalMeanCombo;
+                double zScoreCombo = (sumOfNumbers - theoreticalMeanCombo) / (theoreticalStdDev * Math.Sqrt(6));
+
+                // Obliczenia dla poszczególnych liczb
+                List<double> zScores = numbers.Select(n => (n - theoreticalMeanSingle) / theoreticalStdDev).ToList();
+                List<double> distances = numbers.Select(n => n - theoreticalMeanSingle).ToList();
+
+                // Generowanie wiersza tabeli
+                string row = string.Format(
+                    "{0,3} |{1,3} |{2,3} |{3,3} |{4,3} |{5,3} | {6,-5}| {7,-13}| {8,-19}| {9,-11}| {10,-11}| {11,-11}| {12,-11}| {13,-11}| {14,-11}| {15,-8}| {16,-8}| {17,-8}| {18,-8}| {19,-8}| {20,-8}",
+                    numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5],
+                    sumOfNumbers, distanceToMeanCombo, zScoreCombo.ToString("F10"),
+                    zScores[0].ToString("F2"), zScores[1].ToString("F2"), zScores[2].ToString("F2"), zScores[3].ToString("F2"), zScores[4].ToString("F2"), zScores[5].ToString("F2"),
+                    distances[0].ToString("F0"), distances[1].ToString("F0"), distances[2].ToString("F0"), distances[3].ToString("F0"), distances[4].ToString("F0"), distances[5].ToString("F0")
+                );
+
+                analysisLines.Add(row);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd podczas przetwarzania wiersza: {line}. Szczegóły: {ex.Message}");
+                // Możesz chcieć zwrócić false, jeśli błąd jest krytyczny
+            }
+        }
+
+        // Zapisanie wyników do nowego pliku
+        try
+        {
+            File.WriteAllLines(outputFilePath, analysisLines);
+            Console.WriteLine($"Analiza zakończona! Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas zapisu pliku: {outputFilePath}. Szczegóły: {ex.Message}");
+        }
     }
     static void Function8_Dummy()
     {
