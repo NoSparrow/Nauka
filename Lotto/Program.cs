@@ -337,7 +337,7 @@ class Program
         if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję analizy danych? Wybierz: 1. Uruchom, 2. Pomiń"))
         {
             Console.WriteLine("Funkcja 5 została pominięta.");
-            return true; // Kontynuujemy program, ale bez wykonywania tej funkcji
+            return true;
         }
 
         Console.WriteLine("Rozpoczynam analizę danych...");
@@ -360,10 +360,11 @@ class Program
         var allDataLines = File.ReadAllLines(filePath).Skip(1).ToList();
         List<string> analysisLines = new List<string>();
 
-        // Nagłówek tabeli
-        analysisLines.Add(" Lp. | Data        | Zwycięska kombinacja | Suma | Odl. (od 150) | Z-score (losowania) | Z-score L1 | Z-score L2 | Z-score L3 | Z-score L4 | Z-score L5 | Z-score L6 | Odl. L1 | Odl. L2 | Odl. L3 | Odl. L4 | Odl. L5 | Odl. L6");
-        analysisLines.Add("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+       // Nagłówek tabeli (linia do podmienienia)
+        analysisLines.Add(" Lp.| Data        | Zwycięska kombinacja | Suma | Odl. (od 150)| Z-score (losowania)| Z-score L1 | Z-score L2 | Z-score L3 | Z-score L4 | Z-score L5 | Z-score L6 | Odl. L1 | Odl. L2 | Odl. L3 | Odl. L4 | Odl. L5 | Odl. L6");
 
+        // Separator (linia do podmienienia)
+        analysisLines.Add("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         // Przetwarzanie każdego losowania
         foreach (var line in allDataLines)
         {
@@ -382,29 +383,19 @@ class Program
                 // Obliczenia dla całego losowania
                 int sumOfNumbers = numbers.Sum();
                 double distanceToMeanCombo = sumOfNumbers - theoreticalMeanCombo;
-                double zScoreCombo = numbers.Select(n => (n - theoreticalMeanSingle) / theoreticalStdDev).Sum() / Math.Sqrt(numbers.Count);
+                double zScoreCombo = (sumOfNumbers - theoreticalMeanCombo) / (theoreticalStdDev * Math.Sqrt(6));
 
                 // Obliczenia dla poszczególnych liczb
-                List<double> zScores = new List<double>();
-                List<double> distances = new List<double>();
-                foreach (var number in numbers)
-                {
-                    double distance = number - theoreticalMeanSingle;
-                    double zScore = distance / theoreticalStdDev;
-                    zScores.Add(zScore);
-                    distances.Add(distance);
-                }
+                List<double> zScores = numbers.Select(n => (n - theoreticalMeanSingle) / theoreticalStdDev).ToList();
+                List<double> distances = numbers.Select(n => n - theoreticalMeanSingle).ToList();
 
                 // Generowanie wiersza tabeli z precyzyjnym formatowaniem
-                string row =
-                    $"{lp.PadRight(4)}| {date.PadRight(12)}| {numbersString.PadRight(21)}| {sumOfNumbers.ToString().PadRight(5)}| " +
-                    $"{distanceToMeanCombo.ToString().PadRight(13)}| {zScoreCombo.ToString("F10").PadRight(20)}| " +
-                    $"{zScores[0].ToString("F2").PadRight(11)}| {zScores[1].ToString("F2").PadRight(11)}| " +
-                    $"{zScores[2].ToString("F2").PadRight(11)}| {zScores[3].ToString("F2").PadRight(11)}| " +
-                    $"{zScores[4].ToString("F2").PadRight(11)}| {zScores[5].ToString("F2").PadRight(11)}| " +
-                    $"{distances[0].ToString("F0").PadRight(8)}| {distances[1].ToString("F0").PadRight(8)}| " +
-                    $"{distances[2].ToString("F0").PadRight(8)}| {distances[3].ToString("F0").PadRight(8)}| " +
-                    $"{distances[4].ToString("F0").PadRight(8)}| {distances[5].ToString("F0").PadRight(8)}";
+                string row = string.Format(
+                    "{0,-4}| {1,-12}| {2,-21}| {3,-5}| {4,-13}| {5,-19}| {6,-11}| {7,-11}| {8,-11}| {9,-11}| {10,-11}| {11,-11}| {12,-8}| {13,-8}| {14,-8}| {15,-8}| {16,-8}| {17,-8}",
+                    lp, date, numbersString, sumOfNumbers, distanceToMeanCombo, zScoreCombo.ToString("F10"),
+                    zScores[0].ToString("F2"), zScores[1].ToString("F2"), zScores[2].ToString("F2"), zScores[3].ToString("F2"), zScores[4].ToString("F2"), zScores[5].ToString("F2"),
+                    distances[0].ToString("F0"), distances[1].ToString("F0"), distances[2].ToString("F0"), distances[3].ToString("F0"), distances[4].ToString("F0"), distances[5].ToString("F0")
+                );
 
                 analysisLines.Add(row);
             }
