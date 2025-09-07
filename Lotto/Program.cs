@@ -568,9 +568,200 @@ class Program
             Console.WriteLine($"Błąd podczas zapisu pliku: {outputFilePath}. Szczegóły: {ex.Message}");
         }
     }
+    // Funkcja 8: Analiza statystyczna z pliku AnalizaDanych1.txt
     static void Function8_Dummy()
     {
-        Console.WriteLine("To jest funkcja nr 8.");
+        Console.WriteLine("Funkcja 8: Analiza statystyczna z pliku AnalizaDanych1.txt.");
+
+        // Pytanie o uruchomienie funkcji
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję analizy pytań? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 8 została pominięta.");
+            return;
+        }
+
+        Console.WriteLine("Rozpoczynam analizę danych i przygotowanie odpowiedzi...");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Pytania.txt");
+
+        // Sprawdzenie, czy plik AnalizaDanych1.txt istnieje
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine("Błąd: Plik AnalizaDanych1.txt nie istnieje. Uruchom najpierw Funkcję 5.");
+            return;
+        }
+
+        var allDataLines = File.ReadAllLines(inputFilePath).Skip(2).ToList(); // Pomijamy nagłówki
+
+        // Lista do przechowywania Z-score dla całego losowania
+        List<double> zScores = new List<double>();
+        List<double> positiveZScores = new List<double>();
+        List<double> negativeZScores = new List<double>();
+        List<int> distancesToMean = new List<int>();
+
+        // Zmienne do śledzenia najdłuższych serii
+        int positiveStreak = 0;
+        int maxPositiveStreak = 0;
+        int negativeStreak = 0;
+        int maxNegativeStreak = 0;
+
+        // Zmienna do przechowywania wszystkich Z-score jako string (do porównania)
+        var allZScoresString = new List<string>();
+
+        // Przetwarzanie danych
+        foreach (var line in allDataLines)
+        {
+            try
+            {
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                double zScoreCombo = double.Parse(parts[5].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture);
+                zScores.Add(zScoreCombo);
+                allZScoresString.Add(parts[5]);
+
+                int dist = int.Parse(parts[4].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture);
+                distancesToMean.Add(dist);
+
+                if (zScoreCombo > 0)
+                {
+                    positiveZScores.Add(zScoreCombo);
+                    positiveStreak++;
+                    negativeStreak = 0; // Resetujemy serię ujemną
+                }
+                else if (zScoreCombo < 0)
+                {
+                    negativeZScores.Add(zScoreCombo);
+                    negativeStreak++;
+                    positiveStreak = 0; // Resetujemy serię dodatnią
+                }
+                else
+                {
+                    // Z-score równy 0, obie serie się kończą
+                    positiveStreak = 0;
+                    negativeStreak = 0;
+                }
+
+                if (positiveStreak > maxPositiveStreak)
+                {
+                    maxPositiveStreak = positiveStreak;
+                }
+                if (negativeStreak > maxNegativeStreak)
+                {
+                    maxNegativeStreak = negativeStreak;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd podczas przetwarzania wiersza: {line}. Szczegóły: {ex.Message}");
+            }
+        }
+
+        // --- ODPOWIEDZI NA PYTANIA ---
+        List<string> reportLines = new List<string>();
+        reportLines.Add("==========================================================================================");
+        reportLines.Add("ANALIZA STATYSTYCZNA WYNIKÓW LOTTO");
+        reportLines.Add("==========================================================================================");
+        reportLines.Add("");
+        reportLines.Add("Pytania i odpowiedzi z analizy danych z pliku AnalizaDanych1.txt:");
+        reportLines.Add("");
+
+        // Pytanie 1: Czy jakiś Z-score się powtarza?
+        var zScoreDuplicates = allZScoresString.GroupBy(x => x)
+                                             .Where(g => g.Count() > 1)
+                                             .OrderByDescending(g => g.Count())
+                                             .ToDictionary(g => g.Key, g => g.Count());
+
+        if (zScoreDuplicates.Any())
+        {
+            reportLines.Add("1. Czy jakiś Z-score się powtarza? - TAK.");
+            foreach (var duplicate in zScoreDuplicates)
+            {
+                reportLines.Add($"- Z-score: {duplicate.Key} powtarza się {duplicate.Value} razy.");
+            }
+        }
+        else
+        {
+            reportLines.Add("1. Czy jakiś Z-score się powtarza? - NIE, wszystkie są unikalne.");
+        }
+        reportLines.Add("");
+
+        // Pytanie 2: Jak często Z-score jest dodatni lub ujemny?
+        reportLines.Add("2. Jak często Z-score jest dodatni lub ujemny?");
+        int totalCount = zScores.Count;
+        int positiveCount = positiveZScores.Count;
+        int negativeCount = negativeZScores.Count;
+        int zeroCount = totalCount - positiveCount - negativeCount;
+
+        reportLines.Add($"- Dodatni (powyżej średniej): {positiveCount} razy ({((double)positiveCount / totalCount):P2})");
+        reportLines.Add($"- Ujemny (poniżej średniej): {negativeCount} razy ({((double)negativeCount / totalCount):P2})");
+        reportLines.Add($"- Wynosi 0 (dokładnie średnia): {zeroCount} razy ({((double)zeroCount / totalCount):P2})");
+        reportLines.Add("");
+
+        // Pytanie 3: Najdłuższa seria Z-score dodatniego i ujemnego
+        reportLines.Add("3. Jaka jest najdłuższa seria, gdy Z-score był dodatni oraz ujemny?");
+        reportLines.Add($"- Najdłuższa seria Z-score dodatnich: {maxPositiveStreak} kolejnych losowań.");
+        reportLines.Add($"- Najdłuższa seria Z-score ujemnych: {maxNegativeStreak} kolejnych losowań.");
+        reportLines.Add("");
+
+        // Pytanie 4: Jak często odległość wynosi 0?
+        reportLines.Add("4. Jak często odległość wynosi 0?");
+        var zeroDistanceCount = distancesToMean.Count(d => d == 0);
+        reportLines.Add($"- Odległość od średniej dla całego losowania wyniosła 0 razy: {zeroDistanceCount}");
+        reportLines.Add("");
+
+        // Pytanie 5: Najwyższy i najniższy Z-score
+        reportLines.Add("5. Jaki jest najwyższy i najniższy Z-score?");
+        reportLines.Add($"- Najwyższy Z-score: {zScores.DefaultIfEmpty(0).Max():F10}");
+        reportLines.Add($"- Najniższy Z-score: {zScores.DefaultIfEmpty(0).Min():F10}");
+        reportLines.Add("");
+
+        // Pytanie 6: Średni wynik Z-score
+        reportLines.Add("6. Jaki jest średni wynik Z-score?");
+        double avgTotal = zScores.DefaultIfEmpty(0).Average();
+        double avgPositive = positiveZScores.DefaultIfEmpty(0).Average();
+        double avgNegative = negativeZScores.DefaultIfEmpty(0).Average();
+
+        reportLines.Add($"- Średni ogólny: {avgTotal:F10}");
+        reportLines.Add($"- Średni dla dodatnich: {avgPositive:F10}");
+        reportLines.Add($"- Średni dla ujemnych: {avgNegative:F10}");
+        reportLines.Add("");
+
+        // Pytanie 7: Typowy wynik Z-score (średni, mediana, moda)
+        reportLines.Add("7. Jaki jest typowy wynik Z-score?");
+        reportLines.Add($"- Średni (średnia arytmetyczna): {avgTotal:F10}");
+
+        // Obliczanie mediany
+        zScores.Sort();
+        double median;
+        if (zScores.Count % 2 == 0)
+        {
+            int midIndex = zScores.Count / 2;
+            median = (zScores[midIndex - 1] + zScores[midIndex]) / 2.0;
+        }
+        else
+        {
+            median = zScores[zScores.Count / 2];
+        }
+        reportLines.Add($"- Mediana: {median:F10}");
+
+        // Obliczanie mody (najczęściej występującej wartości)
+        var modeResult = zScores.GroupBy(x => x)
+                                .OrderByDescending(g => g.Count())
+                                .Select(g => g.Key)
+                                .FirstOrDefault();
+        reportLines.Add($"- Moda: {modeResult:F10}");
+        reportLines.Add("");
+
+        // Zapis do pliku
+        try
+        {
+            File.WriteAllLines(outputFilePath, reportLines);
+            Console.WriteLine($"Analiza pytań zakończona! Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas zapisu pliku: {outputFilePath}. Szczegóły: {ex.Message}");
+        }
     }
     static void Function9_Dummy()
     {
