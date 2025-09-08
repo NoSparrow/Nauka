@@ -995,9 +995,87 @@ class Program
             Console.WriteLine($"Błąd podczas przetwarzania pliku: {allCombinationsFilePath}. Szczegóły: {ex.Message}");
         }
     }
+    // Funkcja 10: Filtrowanie danych z pliku TypowanieEtap1.txt na podstawie Z-score L1-L3
     static void Function10_Dummy()
     {
-        Console.WriteLine("To jest funkcja nr 10.");
+        Console.WriteLine("Funkcja 10: Filtrowanie danych z pliku TypowanieEtap1.txt (tylko Z-score L1, L2, L3).");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 10? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 10 została pominięta.");
+            return;
+        }
+
+        Console.WriteLine("Rozpoczynam dodatkowe filtrowanie danych, odrzucam wartości z dodatnim Z-score L1, L2, L3.");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap2.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine("Błąd: Plik TypowanieEtap1.txt nie istnieje. Uruchom najpierw Funkcję 9.");
+            return;
+        }
+
+        try
+        {
+            int linesProcessed = 0;
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+
+            int zScoreL1Index = -1;
+            int zScoreL2Index = -1;
+            int zScoreL3Index = -1;
+
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+
+                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                        zScoreL1Index = headerParts.FindIndex(h => h == "Z-score L1");
+                        zScoreL2Index = headerParts.FindIndex(h => h == "Z-score L2");
+                        zScoreL3Index = headerParts.FindIndex(h => h == "Z-score L3");
+
+                        if (zScoreL1Index == -1 || zScoreL2Index == -1 || zScoreL3Index == -1)
+                        {
+                            Console.WriteLine("Błąd: Nie znaleziono wszystkich wymaganych kolumn Z-score w pliku wejściowym.");
+                            return;
+                        }
+
+                        continue;
+                    }
+
+                    linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+
+                    double zScoreL1 = 0, zScoreL2 = 0, zScoreL3 = 0;
+
+                    // Bezpieczne parsowanie wartości Z-score z bieżącej linii
+                    if (!double.TryParse(parts[zScoreL1Index].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreL1)) continue;
+                    if (!double.TryParse(parts[zScoreL2Index].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreL2)) continue;
+                    if (!double.TryParse(parts[zScoreL3Index].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreL3)) continue;
+
+                    // Kluczowy warunek filtrowania
+                    bool isPositive = (zScoreL1 > 0 || zScoreL2 > 0 || zScoreL3 > 0);
+
+                    if (!isPositive)
+                    {
+                        writer.WriteLine(line);
+                        linesFiltered++;
+                    }
+                }
+            }
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {inputFilePath}. Szczegóły: {ex.Message}");
+        }
     }
 
     // --- Funkcje pomocnicze do pobierania danych (używają HtmlAgilityPack) ---
