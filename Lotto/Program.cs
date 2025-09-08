@@ -859,10 +859,10 @@ class Program
         return data.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
     }
 
-    // Funkcja 9: Filtrowanie kombinacji na podstawie analizy Z-score
+    // Funkcja 9: Filtrowanie kombinacji na podstawie stałego zakresu Z-score
     static void Function9_Dummy()
     {
-        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku WszystkieKombinacjeZscore.txt na podstawie analizy Z-score z pliku Pytania.txt.");
+        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku WszystkieKombinacjeZscore.txt na podstawie stałych wartości Z-score.");
 
         if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania? Wybierz: 1. Uruchom, 2. Pomiń"))
         {
@@ -870,10 +870,9 @@ class Program
             return;
         }
 
-        Console.WriteLine("Rozpoczynam kopiowanie danych w celu testu...");
+        Console.WriteLine("Rozpoczynam filtrowanie danych z ustalonym zakresem z-score z pytania.txt...");
 
         string allCombinationsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieKombinacjeZscore.txt");
-        string questionsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Pytania.txt");
         string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
         if (!File.Exists(allCombinationsFilePath))
@@ -881,38 +880,67 @@ class Program
             Console.WriteLine("Błąd: Plik WszystkieKombinacjeZscore.txt nie istnieje. Uruchom najpierw Funkcję 7.");
             return;
         }
-        if (!File.Exists(questionsFilePath))
-        {
-            Console.WriteLine("Błąd: Plik Pytania.txt nie istnieje. Uruchom najpierw Funkcję 8.");
-            return;
-        }
 
-        // --- UWAGA: PONIŻSZY BLOK KODU JEST TYMCZASOWY DO TESTOWANIA.
-        // --- JEŚLI TO DZIAŁA, OZNACZA TO, ŻE PROBLEM JEST W FILTROWANIU.
+        // Ustawienie stałych wartości granicznych na podstawie danych z pliku Pytania.txt
+        double minZscoreStatic = -3.3197640478;
+        double maxZscoreStatic = 3.3197640478;
+        Console.WriteLine($"Ustawiony zakres Z-score: od {minZscoreStatic} do {maxZscoreStatic}");
 
         try
         {
             int linesProcessed = 0;
-            using (StreamWriter writer = new StreamWriter(outputFilePath, false)) // false = nadpisz plik
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+            int zScoreColumnIndex = -1;
+
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
             {
                 foreach (var line in File.ReadLines(allCombinationsFilePath))
                 {
-                    writer.WriteLine(line);
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+
+                        // Dynamiczne wyszukiwanie indeksu kolumny
+                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                        zScoreColumnIndex = headerParts.FindIndex(h => h.Trim() == "Z-score (losowania)");
+                        if (zScoreColumnIndex == -1)
+                        {
+                            Console.WriteLine("Błąd: Nie znaleziono kolumny 'Z-score (losowania)' w pliku WszystkieKombinacjeZscore.txt.");
+                            return;
+                        }
+                        continue;
+                    }
+
                     linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count <= zScoreColumnIndex || string.IsNullOrWhiteSpace(parts[zScoreColumnIndex]))
+                    {
+                        continue;
+                    }
+
+                    double zScoreLosowanie;
+                    if (!double.TryParse(parts[zScoreColumnIndex].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreLosowanie))
+                    {
+                        Console.WriteLine($"Ostrzeżenie: Nie można sparsować Z-score w wierszu {linesProcessed}. Wartość: '{parts[zScoreColumnIndex]}'. Wiersz zostanie pominięty.");
+                        continue;
+                    }
+
+                    // Kluczowy warunek filtrowania
+                    if (zScoreLosowanie >= minZscoreStatic && zScoreLosowanie <= maxZscoreStatic)
+                    {
+                        writer.WriteLine(line);
+                        linesFiltered++;
+                    }
                 }
             }
-
-            Console.WriteLine($"Kopiowanie zakończone! Skopiowano {linesProcessed} wierszy. Plik: {outputFilePath}");
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Błąd podczas przetwarzania pliku: {allCombinationsFilePath}. Szczegóły: {ex.Message}");
         }
-
-        // Możesz usunąć cały ten blok i przywrócić go później
-        // jeśli chcesz kontynuować testy z filtrowaniem.
-
-        // --- KONIEC BLOKU TESTOWEGO ---
     }
     static void Function10_Dummy()
     {
