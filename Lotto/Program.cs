@@ -859,10 +859,10 @@ class Program
         return data.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
     }
 
-    // Funkcja 9: Filtrowanie kombinacji na podstawie stałego zakresu Z-score
+    // Funkcja 9: Filtrowanie kombinacji na podstawie analizy Z-score
     static void Function9_Dummy()
     {
-        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku WszystkieKombinacjeZscore.txt na podstawie stałych wartości Z-score.");
+        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku WszystkieKombinacjeZscore.txt na podstawie analizy Z-score z pliku Pytania.txt.");
 
         if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania? Wybierz: 1. Uruchom, 2. Pomiń"))
         {
@@ -870,9 +870,10 @@ class Program
             return;
         }
 
-        Console.WriteLine("Rozpoczynam filtrowanie danych z ustalonym zakresem z-score z pytania.txt...");
+        Console.WriteLine("Rozpoczynam filtrowanie danych z automatycznym odczytem wartości z pliku Pytania.txt.");
 
         string allCombinationsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieKombinacjeZscore.txt");
+        string questionsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Pytania.txt");
         string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
         if (!File.Exists(allCombinationsFilePath))
@@ -880,12 +881,67 @@ class Program
             Console.WriteLine("Błąd: Plik WszystkieKombinacjeZscore.txt nie istnieje. Uruchom najpierw Funkcję 7.");
             return;
         }
+        if (!File.Exists(questionsFilePath))
+        {
+            Console.WriteLine("Błąd: Plik Pytania.txt nie istnieje. Uruchom najpierw Funkcję 8.");
+            return;
+        }
 
-        // Ustawienie stałych wartości granicznych na podstawie danych z pliku Pytania.txt
-        double minZscoreStatic = -3.3197640478;
-        double maxZscoreStatic = 3.3197640478;
-        Console.WriteLine($"Ustawiony zakres Z-score: od {minZscoreStatic} do {maxZscoreStatic}");
+        // 1. Odczytywanie wartości krytycznych z pliku Pytania.txt
+        double minZscoreLosowanie = 0;
+        double maxZscoreLosowanie = 0;
 
+        try
+        {
+            var questionsFileContent = File.ReadAllLines(questionsFilePath);
+            var headerIndex = questionsFileContent.ToList().FindIndex(l => l.Contains("PYTANIE"));
+
+            if (headerIndex == -1)
+            {
+                Console.WriteLine("Błąd: Nie znaleziono nagłówków w pliku Pytania.txt.");
+                return;
+            }
+
+            var maxLine = questionsFileContent.Skip(headerIndex + 2).FirstOrDefault();
+            var minLine = questionsFileContent.Skip(headerIndex + 3).FirstOrDefault();
+
+            if (maxLine == null || minLine == null)
+            {
+                Console.WriteLine("Błąd: Nie znaleziono wierszy z maksymalnym/minimalnym Z-score w pliku Pytania.txt.");
+                return;
+            }
+
+            var partsMax = maxLine.Split('|').Select(p => p.Trim()).ToList();
+            var partsMin = minLine.Split('|').Select(p => p.Trim()).ToList();
+
+            if (partsMax.Count < 2 || partsMin.Count < 2)
+            {
+                Console.WriteLine("Błąd: Nieprawidłowy format wierszy z Z-score w pliku Pytania.txt.");
+                return;
+            }
+
+            // Weryfikacja odczytanych wartości
+            if (!double.TryParse(partsMax[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out maxZscoreLosowanie))
+            {
+                Console.WriteLine("BŁĄD PARSOWANIA: Nie można odczytać wartości maksymalnego Z-score. Sprawdź format pliku Pytania.txt.");
+                return;
+            }
+            if (!double.TryParse(partsMin[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out minZscoreLosowanie))
+            {
+                Console.WriteLine("BŁĄD PARSOWANIA: Nie można odczytać wartości minimalnego Z-score. Sprawdź format pliku Pytania.txt.");
+                return;
+            }
+
+            Console.WriteLine($"Odczytany minimalny Z-score losowania: {minZscoreLosowanie}");
+            Console.WriteLine($"Odczytany maksymalny Z-score losowania: {maxZscoreLosowanie}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas odczytu pliku Pytania.txt. Szczegóły: {ex.Message}");
+            return;
+        }
+
+        // 2. Przetwarzanie dużego pliku liniowo
         try
         {
             int linesProcessed = 0;
@@ -902,7 +958,6 @@ class Program
                         writer.WriteLine(line);
                         isHeaderWritten = true;
 
-                        // Dynamiczne wyszukiwanie indeksu kolumny
                         var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
                         zScoreColumnIndex = headerParts.FindIndex(h => h.Trim() == "Z-score (losowania)");
                         if (zScoreColumnIndex == -1)
@@ -923,12 +978,10 @@ class Program
                     double zScoreLosowanie;
                     if (!double.TryParse(parts[zScoreColumnIndex].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreLosowanie))
                     {
-                        Console.WriteLine($"Ostrzeżenie: Nie można sparsować Z-score w wierszu {linesProcessed}. Wartość: '{parts[zScoreColumnIndex]}'. Wiersz zostanie pominięty.");
                         continue;
                     }
 
-                    // Kluczowy warunek filtrowania
-                    if (zScoreLosowanie >= minZscoreStatic && zScoreLosowanie <= maxZscoreStatic)
+                    if (zScoreLosowanie >= minZscoreLosowanie && zScoreLosowanie <= maxZscoreLosowanie)
                     {
                         writer.WriteLine(line);
                         linesFiltered++;
