@@ -1124,9 +1124,105 @@ class Program
     // Pozostałe funkcję od 11
 
 
-    static void Function11_Dummy()
+    // Funkcja 11: Filtrowanie danych z pliku "TypowanieEtap2.txt" i zapis do "TypowanieEtap3.txt".
+    // Odrzuca losowania, w których Z-score L4, L5 lub L6 jest dodatni.
+    static bool Function11_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 11: Filtrowanie danych z pliku TypowanieEtap2.txt.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania danych? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 11 została pominięta.");
+            return true;
+        }
+
+        Console.WriteLine("Rozpoczynam filtrowanie danych...");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap2.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap3.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Plik wejściowy {inputFilePath} nie istnieje. Uruchom najpierw poprzednie etapy typowania. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            int linesProcessed = 0;
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+
+            // Indeksy kolumn do filtrowania
+            int zScoreL4Index = -1;
+            int zScoreL5Index = -1;
+            int zScoreL6Index = -1;
+
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+
+                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                        zScoreL4Index = headerParts.FindIndex(h => h.Equals("Z-score L4", StringComparison.OrdinalIgnoreCase));
+                        zScoreL5Index = headerParts.FindIndex(h => h.Equals("Z-score L5", StringComparison.OrdinalIgnoreCase));
+                        zScoreL6Index = headerParts.FindIndex(h => h.Equals("Z-score L6", StringComparison.OrdinalIgnoreCase));
+
+                        if (zScoreL4Index == -1 || zScoreL5Index == -1 || zScoreL6Index == -1)
+                        {
+                            Console.WriteLine("Błąd: Nie znaleziono wszystkich wymaganych kolumn (Z-score L4, L5, L6) w pliku wejściowym. Sprawdź format nagłówka.");
+                            return false;
+                        }
+
+                        // Zapisz również separator
+                        if (File.Exists(inputFilePath) && File.ReadLines(inputFilePath).Count() > 1)
+                        {
+                            writer.WriteLine(File.ReadLines(inputFilePath).Skip(1).First());
+                        }
+
+                        continue;
+                    }
+
+                    // Pomiń separator
+                    if (line.Trim().StartsWith("---"))
+                    {
+                        continue;
+                    }
+
+                    linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+
+                    double zScoreL4Value, zScoreL5Value, zScoreL6Value;
+
+                    if (!double.TryParse(parts[zScoreL4Index].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out zScoreL4Value)) continue;
+                    if (!double.TryParse(parts[zScoreL5Index].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out zScoreL5Value)) continue;
+                    if (!double.TryParse(parts[zScoreL6Index].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out zScoreL6Value)) continue;
+
+                    // Kluczowy warunek filtrowania
+                    // Losowanie jest odrzucane, jeśli Z-score dla L4, L5 lub L6 jest dodatni.
+                    bool isPositive = (zScoreL4Value < 0 || zScoreL5Value < 0 || zScoreL6Value < 0);
+
+                    if (!isPositive)
+                    {
+                        writer.WriteLine(line);
+                        linesFiltered++;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {inputFilePath}. Szczegóły: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
     static void Function12_Dummy()
     {
