@@ -1224,9 +1224,138 @@ class Program
 
         return true;
     }
+    // Funkcja 12: Szczegółowa analiza występowania par i ciągów kolejnych liczb.
     static void Function12_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 12: Analiza występowania par i ciągów kolejnych liczb.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 12? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 12 została pominięta.");
+            return;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "PobraneDane.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaKolejnychLiczb.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Plik wejściowy {inputFilePath} nie istnieje.");
+            return;
+        }
+
+        int totalLotteries = 0;
+        int lotteriesWithPairs = 0;
+        int lotteriesWithThrees = 0;
+        int lotteriesWithFours = 0;
+        int lotteriesWithFives = 0;
+        int lotteriesWithSixes = 0;
+
+        try
+        {
+            // Przetwarzanie pliku strumieniowo, linia po linii.
+            foreach (var line in File.ReadLines(inputFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---") || line.Trim().StartsWith("Lp."))
+                {
+                    continue;
+                }
+
+                totalLotteries++;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+
+                if (parts.Count >= 3)
+                {
+                    // Poprawne wydzielanie liczb z ostatniej kolumny, oddzielonej spacjami
+                    var numberParts = parts[2].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                    List<int> numbers = new List<int>();
+                    foreach (var part in numberParts)
+                    {
+                        if (int.TryParse(part, out int number))
+                        {
+                            numbers.Add(number);
+                        }
+                    }
+
+                    if (numbers.Count < 6)
+                    {
+                        // Pomiń wiersze, które nie mają 6 liczb
+                        continue;
+                    }
+
+                    numbers.Sort();
+
+                    bool hasPair = false;
+                    bool hasThree = false;
+                    bool hasFour = false;
+                    bool hasFive = false;
+                    bool hasSix = false;
+
+                    int currentStreak = 1;
+                    for (int i = 0; i < numbers.Count - 1; i++)
+                    {
+                        if (numbers[i] + 1 == numbers[i + 1])
+                        {
+                            currentStreak++;
+                        }
+                        else
+                        {
+                            if (currentStreak >= 2) hasPair = true;
+                            if (currentStreak >= 3) hasThree = true;
+                            if (currentStreak >= 4) hasFour = true;
+                            if (currentStreak >= 5) hasFive = true;
+                            if (currentStreak >= 6) hasSix = true;
+                            currentStreak = 1;
+                        }
+                    }
+
+                    // Obsługa ciągu na końcu losowania
+                    if (currentStreak >= 2) hasPair = true;
+                    if (currentStreak >= 3) hasThree = true;
+                    if (currentStreak >= 4) hasFour = true;
+                    if (currentStreak >= 5) hasFive = true;
+                    if (currentStreak >= 6) hasSix = true;
+
+                    if (hasPair) lotteriesWithPairs++;
+                    if (hasThree) lotteriesWithThrees++;
+                    if (hasFour) lotteriesWithFours++;
+                    if (hasFive) lotteriesWithFives++;
+                    if (hasSix) lotteriesWithSixes++;
+                }
+            }
+
+            // Zapis wyników do nowego pliku
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine($"Całkowita liczba przeanalizowanych losowań: {totalLotteries}");
+                writer.WriteLine($"");
+                writer.WriteLine($"Statystyki losowań z ciągami kolejnych liczb:");
+                writer.WriteLine($"- Losowania z parami: {lotteriesWithPairs}");
+                writer.WriteLine($"- Losowania z trójkami: {lotteriesWithThrees}");
+                writer.WriteLine($"- Losowania z czwórkami: {lotteriesWithFours}");
+                writer.WriteLine($"- Losowania z piątkami: {lotteriesWithFives}");
+                writer.WriteLine($"- Losowania z szóstkami: {lotteriesWithSixes}");
+                writer.WriteLine($"");
+
+                if (totalLotteries > 0)
+                {
+                    writer.WriteLine($"Udział procentowy w liczbie losowań, które zawierają ciągi:");
+                    writer.WriteLine($"- Losowania z parami: {(double)lotteriesWithPairs / totalLotteries * 100:F2}%");
+                    writer.WriteLine($"- Losowania z trójkami: {(double)lotteriesWithThrees / totalLotteries * 100:F2}%");
+                    writer.WriteLine($"- Losowania z czwórkami: {(double)lotteriesWithFours / totalLotteries * 100:F2}%");
+                    writer.WriteLine($"- Losowania z piątkami: {(double)lotteriesWithFives / totalLotteries * 100:F2}%");
+                    writer.WriteLine($"- Losowania z szóstkami: {(double)lotteriesWithSixes / totalLotteries * 100:F2}%");
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Wystąpił błąd podczas analizy pliku: {ex.Message}");
+        }
     }
     static void Function13_Dummy()
     {
