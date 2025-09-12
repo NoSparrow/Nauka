@@ -2736,10 +2736,80 @@ class Program
         return true;
     }
 
-    static void Function25_Dummy()
+    static bool Function25_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 25: Analiza rozkładu normalnego losowań według Z-score.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 25? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 25 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap9.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "RozkładNormalnyEtap9.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            var losowania = new List<(string line, double zscore)>();
+            string headerLine = "";
+
+            foreach (var line in File.ReadLines(inputFilePath))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                if (line.StartsWith("L1") || line.Contains("Suma") || headerLine == "")
+                {
+                    headerLine = line;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 9) continue; // kolumna Z-score (losowania) jest na miejscu 8 (indeks 8)
+
+                if (double.TryParse(parts[8].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out double zscore))
+                {
+                    losowania.Add((line, zscore));
+                }
+            }
+
+            if (losowania.Count == 0)
+            {
+                Console.WriteLine("Brak danych do analizy.");
+                return false;
+            }
+
+            double meanZ = losowania.Average(l => l.zscore);
+
+            // Sortowanie według odległości od średniego z-score
+            var sorted = losowania.OrderBy(l => Math.Abs(l.zscore - meanZ)).ToList();
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine(headerLine);
+                foreach (var item in sorted)
+                {
+                    writer.WriteLine(item.line);
+                }
+            }
+
+            Console.WriteLine($"Analiza rozkładu normalnego zakończona. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy rozkładu normalnego: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function26_Dummy()
     {
         Console.WriteLine("Funkcja");
