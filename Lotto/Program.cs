@@ -2458,10 +2458,83 @@ class Program
         return true;
     }
 
-    static void Function22_Dummy()
+    static bool Function22_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 22: Filtrowanie losowań według liczby niskich i wysokich liczb.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 22? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 22 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap7.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap8.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        var allowedCombinations = new HashSet<string> { "3 niskie / 3 wysokie", "2 niskie / 4 wysokie", "4 niskie / 2 wysokie", "1 niskie / 5 wysokie" };
+
+        try
+        {
+            bool isHeaderWritten = false;
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+                        continue;
+                    }
+
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count < 6) continue;
+
+                    // pobieramy dokładnie kolumny L1–L6
+                    var numbers = new List<int>();
+                    for (int i = 0; i < 6; i++)
+                    {
+                        if (int.TryParse(parts[i], out int num))
+                            numbers.Add(num);
+                    }
+
+                    if (numbers.Count != 6) continue;
+
+                    int lowCount = numbers.Count(n => n >= 1 && n <= 24);
+                    int highCount = 6 - lowCount;
+                    string combination = $"{lowCount} niskie / {highCount} wysokie";
+
+                    if (allowedCombinations.Contains(combination))
+                    {
+                        writer.WriteLine(line);
+                    }
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas filtrowania: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function23_Dummy()
     {
         Console.WriteLine("Funkcja");
