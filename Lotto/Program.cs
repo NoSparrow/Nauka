@@ -1357,9 +1357,128 @@ class Program
             Console.WriteLine($"Wystąpił błąd podczas analizy pliku: {ex.Message}");
         }
     }
-    static void Function13_Dummy()
+    // Funkcja 13: Filtrowanie losowań, aby usunąć ciągi 3 lub więcej kolejnych liczb.
+    static bool Function13_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 13: Filtrowanie losowań zawierających długie ciągi kolejnych liczb.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 13? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 13 została pominięta.");
+            return true;
+        }
+
+        Console.WriteLine("Rozpoczynam filtrowanie danych...");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap3.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap4.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Plik wejściowy {inputFilePath} nie istnieje. Uruchom najpierw poprzednie etapy typowania. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            int linesProcessed = 0;
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+
+            // Indeksy kolumn L1 do L6
+            int l1Index = -1;
+            int l2Index = -1;
+            int l3Index = -1;
+            int l4Index = -1;
+            int l5Index = -1;
+            int l6Index = -1;
+
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+
+                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                        l1Index = headerParts.FindIndex(h => h.Equals("L1", StringComparison.OrdinalIgnoreCase));
+                        l2Index = headerParts.FindIndex(h => h.Equals("L2", StringComparison.OrdinalIgnoreCase));
+                        l3Index = headerParts.FindIndex(h => h.Equals("L3", StringComparison.OrdinalIgnoreCase));
+                        l4Index = headerParts.FindIndex(h => h.Equals("L4", StringComparison.OrdinalIgnoreCase));
+                        l5Index = headerParts.FindIndex(h => h.Equals("L5", StringComparison.OrdinalIgnoreCase));
+                        l6Index = headerParts.FindIndex(h => h.Equals("L6", StringComparison.OrdinalIgnoreCase));
+
+                        if (l1Index == -1 || l2Index == -1 || l3Index == -1 || l4Index == -1 || l5Index == -1 || l6Index == -1)
+                        {
+                            Console.WriteLine("Błąd: Nie znaleziono wszystkich wymaganych kolumn (L1-L6) w pliku wejściowym. Sprawdź format nagłówka.");
+                            return false;
+                        }
+                        continue;
+                    }
+
+                    linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+
+                    List<int> numbers = new List<int>();
+                    if (parts.Count > l6Index && int.TryParse(parts[l1Index], out int l1) &&
+                        int.TryParse(parts[l2Index], out int l2) &&
+                        int.TryParse(parts[l3Index], out int l3) &&
+                        int.TryParse(parts[l4Index], out int l4) &&
+                        int.TryParse(parts[l5Index], out int l5) &&
+                        int.TryParse(parts[l6Index], out int l6))
+                    {
+                        numbers.AddRange(new[] { l1, l2, l3, l4, l5, l6 });
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    numbers.Sort();
+
+                    int maxConsecutiveCount = 1;
+                    int currentConsecutiveCount = 1;
+
+                    for (int i = 0; i < numbers.Count - 1; i++)
+                    {
+                        if (numbers[i] + 1 == numbers[i + 1])
+                        {
+                            currentConsecutiveCount++;
+                        }
+                        else
+                        {
+                            maxConsecutiveCount = Math.Max(maxConsecutiveCount, currentConsecutiveCount);
+                            currentConsecutiveCount = 1;
+                        }
+                    }
+                    maxConsecutiveCount = Math.Max(maxConsecutiveCount, currentConsecutiveCount);
+
+                    // Kluczowy warunek filtrowania
+                    if (maxConsecutiveCount < 3)
+                    {
+                        writer.WriteLine(line);
+                        linesFiltered++;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {inputFilePath}. Szczegóły: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
     static void Function14_Dummy()
     {
