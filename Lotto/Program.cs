@@ -2654,10 +2654,88 @@ class Program
         return true;
     }
 
-    static void Function24_Dummy()
+    static bool Function24_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 24: Filtrowanie losowań Lotto na podstawie czterech warunków.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 24? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 24 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap8.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap9.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            int linesProcessed = 0;
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                        continue;
+
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line); // zapis nagłówka
+                        isHeaderWritten = true;
+                        continue;
+                    }
+
+                    linesProcessed++;
+
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count < 6) continue; // zabezpieczenie przed niepoprawnymi liniami
+
+                    var numbers = parts.Take(6).Select(int.Parse).ToList(); // L1-L6
+
+                    // Warunek 1: para 1 i 49
+                    bool cond1 = numbers.Contains(1) && numbers.Contains(49);
+
+                    // Warunek 2: para/trójka/wszystkie cztery 10,20,30,40
+                    int[] specialNumbers = new int[] { 10, 20, 30, 40 };
+                    int hitsSpecial = numbers.Count(n => specialNumbers.Contains(n));
+                    bool cond2 = hitsSpecial >= 2;
+
+                    // Warunek 3: 3 lub więcej wielokrotności 5
+                    int[] multiples5 = Enumerable.Range(1, 9).Select(x => x * 5).ToArray();
+                    int hitsMultiples = numbers.Count(n => multiples5.Contains(n));
+                    bool cond3 = hitsMultiples >= 3;
+
+                    // Warunek 4: para 7 i 13
+                    bool cond4 = numbers.Contains(7) && numbers.Contains(13);
+
+                    // jeśli którykolwiek warunek spełniony, odrzucamy
+                    if (cond1 || cond2 || cond3 || cond4)
+                        continue;
+
+                    writer.WriteLine(line);
+                    linesFiltered++;
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiono {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas filtrowania: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function25_Dummy()
     {
         Console.WriteLine("Funkcja");
