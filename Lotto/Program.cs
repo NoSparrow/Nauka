@@ -1791,7 +1791,7 @@ class Program
 
         return true;
     }
-// Funkcja 16: Porównuje statystyki sum losowań z dwóch zbiorów danych.
+    // Funkcja 16: Porównuje statystyki sum losowań z dwóch zbiorów danych.
     static bool Function16_Dummy()
     {
         Console.WriteLine("Funkcja 16: Porównanie statystyk sum losowań z plików PobraneDane.txt i TypowanieEtap5.txt.");
@@ -1954,9 +1954,148 @@ class Program
 
         return true;
     }
-    static void Function17_Dummy()
+    static bool Function17_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 17: Analiza sum i odległości od wartości oczekiwanej (150).");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 17? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 17 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych4.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak wymaganego pliku {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        var sums = new List<int>();
+        var sumCounts = new Dictionary<int, int>();
+
+        var distances = new List<int>();
+        var distanceCounts = new Dictionary<int, int>();
+
+        try
+        {
+            foreach (var line in File.ReadLines(inputFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("---") || line.StartsWith("Lp."))
+                    continue;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 5)
+                    continue;
+
+                // kolumna 3 = Suma, kolumna 4 = Odl. (od 150)
+                if (int.TryParse(parts[3], out int sum) && int.TryParse(parts[4], out int distance))
+                {
+                    sums.Add(sum);
+                    if (!sumCounts.ContainsKey(sum)) sumCounts[sum] = 0;
+                    sumCounts[sum]++;
+
+                    distances.Add(distance);
+                    if (!distanceCounts.ContainsKey(distance)) distanceCounts[distance] = 0;
+                    distanceCounts[distance]++;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas odczytu danych: {ex.Message}");
+            return false;
+        }
+
+        try
+        {
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine("Analiza sum i odległości od wartości oczekiwanej (150)");
+                writer.WriteLine("======================================================");
+                writer.WriteLine();
+
+                // Sekcja 1: SUMA
+                if (sums.Count > 0)
+                {
+                    writer.WriteLine("Sekcja 1: Analiza sum losowań");
+                    writer.WriteLine("--------------------------------");
+                    writer.WriteLine($"Liczba losowań: {sums.Count}");
+                    writer.WriteLine($"Średnia suma: {sums.Average():F2}");
+                    writer.WriteLine($"Minimalna suma: {sums.Min()}");
+                    writer.WriteLine($"Maksymalna suma: {sums.Max()}");
+                    double stDevSums = Math.Sqrt(sums.Sum(v => Math.Pow(v - sums.Average(), 2)) / sums.Count);
+                    writer.WriteLine($"Odchylenie standardowe: {stDevSums:F2}");
+                    writer.WriteLine();
+
+                    writer.WriteLine("Częstość występowania poszczególnych sum:");
+                    writer.WriteLine($"{"Suma",-10} | {"Ilość",-10} | {"Procent",-10}");
+                    writer.WriteLine(new string('-', 40));
+
+                    var sortedSums = sumCounts.OrderByDescending(p => p.Value);
+                    foreach (var pair in sortedSums)
+                    {
+                        double percentage = (double)pair.Value / sums.Count * 100;
+                        writer.WriteLine($"{pair.Key,-10} | {pair.Value,-10} | {percentage:F2}%");
+                    }
+                    writer.WriteLine();
+                }
+
+                // Sekcja 2: ODLEGŁOŚĆ OD 150
+                if (distances.Count > 0)
+                {
+                    writer.WriteLine("Sekcja 2: Analiza odległości od wartości oczekiwanej (150)");
+                    writer.WriteLine("-----------------------------------------------------------");
+                    writer.WriteLine($"Łączna liczba odległości: {distances.Count}");
+                    writer.WriteLine($"Średnia odległość: {distances.Average():F2}");
+                    writer.WriteLine($"Minimalna odległość: {distances.Min()}");
+                    writer.WriteLine($"Maksymalna odległość: {distances.Max()}");
+                    double stDevDist = Math.Sqrt(distances.Sum(v => Math.Pow(v - distances.Average(), 2)) / distances.Count);
+                    writer.WriteLine($"Odchylenie standardowe: {stDevDist:F2}");
+                    writer.WriteLine();
+
+                    int negatives = distances.Count(d => d < 0);
+                    int positives = distances.Count(d => d > 0);
+                    int zeros = distances.Count(d => d == 0);
+                    double negPct = (double)negatives / distances.Count * 100;
+                    double posPct = (double)positives / distances.Count * 100;
+                    double zeroPct = (double)zeros / distances.Count * 100;
+                    writer.WriteLine($"Odległości ujemne: {negatives} ({negPct:F2}%)");
+                    writer.WriteLine($"Odległości równe 0: {zeros} ({zeroPct:F2}%)");
+                    writer.WriteLine($"Odległości dodatnie: {positives} ({posPct:F2}%)");
+                    writer.WriteLine();
+
+                    writer.WriteLine("Częstość występowania poszczególnych odległości:");
+                    writer.WriteLine($"{"Odl.",-10} | {"Ilość",-10} | {"Procent",-10}");
+                    writer.WriteLine(new string('-', 40));
+
+                    var sortedDistances = distanceCounts.OrderByDescending(p => p.Value);
+                    foreach (var pair in sortedDistances)
+                    {
+                        double percentage = (double)pair.Value / distances.Count * 100;
+                        writer.WriteLine($"{pair.Key,-10} | {pair.Value,-10} | {percentage:F2}%");
+                    }
+                    writer.WriteLine();
+
+                    // Podsumowanie dla odległości występujących tylko raz
+                    int singleOccur = distanceCounts.Count(p => p.Value == 1);
+                    double singlePct = (double)singleOccur / distances.Count * 100;
+                    writer.WriteLine("Podsumowanie:");
+                    writer.WriteLine($"Odległości występujące tylko raz: {singleOccur} ({singlePct:F2}% wszystkich)");
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona pomyślnie. Raport zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Wystąpił błąd podczas zapisu pliku: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
     static void Function18_Dummy()
     {
