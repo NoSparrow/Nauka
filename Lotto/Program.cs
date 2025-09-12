@@ -2097,10 +2097,114 @@ class Program
 
         return true;
     }
-    static void Function18_Dummy()
+    static bool Function18_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 18: Filtrowanie danych z TypowanieEtap5.txt na podstawie odległości całkowitej (Odl. od 150).");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 18? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 18 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap5.txt");
+        string statsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych4.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap6.txt");
+
+        if (!File.Exists(inputFilePath) || !File.Exists(statsFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak wymaganych plików wejściowych. Upewnij się, że pliki {inputFilePath} i {statsFilePath} istnieją. Przerywam.");
+            return false;
+        }
+
+        // Krok 1: Wczytanie dozwolonych odległości całkowitych z AnalizaDanych4.txt
+        var allowedDistances = new HashSet<int>();
+        try
+        {
+            bool inTableSection = false;
+            foreach (var line in File.ReadLines(statsFilePath))
+            {
+                if (line.Contains("Częstość występowania poszczególnych odległości"))
+                {
+                    inTableSection = true;
+                    continue;
+                }
+                if (inTableSection)
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("-"))
+                        continue;
+
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count >= 2 && int.TryParse(parts[0], out int distance) && int.TryParse(parts[1], out int count))
+                    {
+                        if (count >= 30)
+                            allowedDistances.Add(distance);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas wczytywania danych statystycznych: {ex.Message}. Przerywam.");
+            return false;
+        }
+
+        // Krok 2: Filtrowanie TypowanieEtap5.txt na podstawie Odl. (od 150)
+        try
+        {
+            int linesProcessed = 0;
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+            int distanceIndex = -1;
+
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                        distanceIndex = headerParts.FindIndex(h => h.Equals("Odl. (od 150)", StringComparison.OrdinalIgnoreCase));
+                        if (distanceIndex == -1)
+                        {
+                            Console.WriteLine("Błąd: Nie znaleziono kolumny 'Odl. (od 150)' w pliku wejściowym.");
+                            return false;
+                        }
+                        continue;
+                    }
+
+                    linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (distanceIndex >= 0 && int.TryParse(parts[distanceIndex], out int distanceValue))
+                    {
+                        if (allowedDistances.Contains(distanceValue))
+                        {
+                            writer.WriteLine(line);
+                            linesFiltered++;
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas przetwarzania plików: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function19_Dummy()
     {
         Console.WriteLine("Funkcja");
