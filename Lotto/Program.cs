@@ -2313,10 +2313,78 @@ class Program
         return true;
     }
 
-    static void Function20_Dummy()
+    static bool Function20_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 20: Filtrowanie losowań według liczby parzystych w całym losowaniu.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 20? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 20 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap6.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap7.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            bool isHeaderWritten = false;
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+                        continue;
+                    }
+
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count < 6) continue;
+
+                    // Obliczamy liczbę parzystych w całym losowaniu (kolumny L1-L6)
+                    int evenCount = 0;
+                    for (int i = 0; i < 6; i++)
+                    {
+                        if (int.TryParse(parts[i], out int number))
+                        {
+                            if (number % 2 == 0) evenCount++;
+                        }
+                    }
+
+                    // Filtrujemy: usuwamy losowania z 0, 5 lub 6 liczbami parzystymi
+                    if (evenCount != 0 && evenCount != 5 && evenCount != 6)
+                    {
+                        writer.WriteLine(line);
+                    }
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas filtrowania: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function21_Dummy()
     {
         Console.WriteLine("Funkcja");
