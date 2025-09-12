@@ -2535,10 +2535,125 @@ class Program
         return true;
     }
 
-    static void Function23_Dummy()
+    static bool Function23_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 23: Zaawansowana analiza losowań Lotto.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 23? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 23 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych7.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            var losowania = new List<List<int>>();
+
+            foreach (var line in File.ReadLines(inputFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---") || line.TrimStart().StartsWith("Lp."))
+                    continue;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 3) continue;
+
+                var numbers = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+                if (numbers.Count == 6) losowania.Add(numbers);
+            }
+
+            int totalLosowania = losowania.Count;
+
+            // Sekcja 1: Liczba 1
+            int count1 = losowania.Count(l => l.Contains(1));
+
+            // Sekcja 2: Liczba 49 i para 1 i 49
+            int count49 = losowania.Count(l => l.Contains(49));
+            int count1and49 = losowania.Count(l => l.Contains(1) && l.Contains(49));
+
+            // Sekcja 3: Liczby 10,20,30,40
+            int[] specialNumbers = new int[] { 10, 20, 30, 40 };
+            var countsSpecial = specialNumbers.ToDictionary(n => n, n => 0);
+            int pairSpecial = 0, tripleSpecial = 0, quadSpecial = 0;
+
+            foreach (var l in losowania)
+            {
+                var hits = specialNumbers.Count(n => l.Contains(n));
+                if (hits >= 2) pairSpecial += hits == 2 ? 1 : 0;
+                if (hits >= 3) tripleSpecial += hits == 3 ? 1 : 0;
+                if (hits == 4) quadSpecial++;
+
+                foreach (var n in specialNumbers)
+                    if (l.Contains(n)) countsSpecial[n]++;
+            }
+
+            // Sekcja 4: wielokrotności 5
+            int[] multiples5 = Enumerable.Range(1, 9).Select(x => x * 5).ToArray();
+            int[] multiplesCount = new int[7]; // od 0 do 6 w jednym losowaniu
+            foreach (var l in losowania)
+            {
+                int hits = l.Count(n => multiples5.Contains(n));
+                multiplesCount[hits]++;
+            }
+
+            // Sekcja 5: szczęśliwe i pechowe liczby 7 i 13
+            int count7 = losowania.Count(l => l.Contains(7));
+            int count13 = losowania.Count(l => l.Contains(13));
+            int count7and13 = losowania.Count(l => l.Contains(7) && l.Contains(13));
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine("Zaawansowana analiza losowań Lotto");
+                writer.WriteLine($"Liczba losowań: {totalLosowania}");
+                writer.WriteLine();
+
+                writer.WriteLine("1. Liczba 1");
+                writer.WriteLine($"Ilość: {count1}, Procent: {(double)count1 / totalLosowania * 100:F2}%");
+                writer.WriteLine();
+
+                writer.WriteLine("2. Liczba 49 i para 1+49");
+                writer.WriteLine($"49: {count49}, Procent: {(double)count49 / totalLosowania * 100:F2}%");
+                writer.WriteLine($"Para 1 i 49: {count1and49}, Procent: {(double)count1and49 / totalLosowania * 100:F2}%");
+                writer.WriteLine();
+
+                writer.WriteLine("3. Liczby 10,20,30,40");
+                foreach (var kvp in countsSpecial)
+                    writer.WriteLine($"{kvp.Key}: {kvp.Value}, Procent: {(double)kvp.Value / totalLosowania * 100:F2}%");
+                writer.WriteLine($"Para z tych liczb: {pairSpecial}");
+                writer.WriteLine($"Trójka z tych liczb: {tripleSpecial}");
+                writer.WriteLine($"Wszystkie 4: {quadSpecial}");
+                writer.WriteLine();
+
+                writer.WriteLine("4. Wielokrotności 5 (0-6 w jednym losowaniu)");
+                for (int i = 0; i <= 6; i++)
+                    writer.WriteLine($"{i} liczb: {multiplesCount[i]}, Procent: {(double)multiplesCount[i] / totalLosowania * 100:F2}%");
+                writer.WriteLine();
+
+                writer.WriteLine("5. Liczby szczęśliwe (7) i pechowe (13)");
+                writer.WriteLine($"7: {count7}, Procent: {(double)count7 / totalLosowania * 100:F2}%");
+                writer.WriteLine($"13: {count13}, Procent: {(double)count13 / totalLosowania * 100:F2}%");
+                writer.WriteLine($"Para 7 i 13: {count7and13}, Procent: {(double)count7and13 / totalLosowania * 100:F2}%");
+            }
+
+            Console.WriteLine($"Analiza zakończona. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function24_Dummy()
     {
         Console.WriteLine("Funkcja");
