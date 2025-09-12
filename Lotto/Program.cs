@@ -2810,10 +2810,77 @@ class Program
         return true;
     }
 
-    static void Function26_Dummy()
+    static bool Function26_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 26: Filtrowanie losowań usuwając te zawierające 1 lub 49.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 26? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 26 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap9.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap10.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            int linesProcessed = 0;
+            int linesKept = 0;
+            string headerLine = "";
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (line.StartsWith("L1") || line.Contains("Suma") || headerLine == "")
+                    {
+                        headerLine = line;
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count < 6)
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    var numbers = parts.Take(6).Select(int.Parse).ToList(); // L1-L6
+                    linesProcessed++;
+
+                    if (numbers.Contains(1) || numbers.Contains(49))
+                        continue; // pomijamy wiersz
+
+                    writer.WriteLine(line);
+                    linesKept++;
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone. Przetworzono {linesProcessed} losowań, pozostawiono {linesKept}. Wyniki zapisano w: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas filtrowania: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function27_Dummy()
     {
         Console.WriteLine("Funkcja");
