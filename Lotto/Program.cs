@@ -2881,10 +2881,79 @@ class Program
         return true;
     }
 
-    static void Function27_Dummy()
+    static bool Function27_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 27: Sortowanie losowań według z-score względem średniego z-score (TypowanieEtap10.txt).");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 27? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 27 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap10.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "RozkładNormalnyEtap10.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        try
+        {
+            var losowania = new List<(string Line, double ZScore)>();
+            string headerLine = "";
+
+            foreach (var line in File.ReadLines(inputFilePath))
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                if (line.StartsWith("L1") || line.Contains("Suma") || string.IsNullOrEmpty(headerLine))
+                {
+                    headerLine = line;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 9) continue;
+
+                if (double.TryParse(parts[8].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out double zscore))
+                {
+                    losowania.Add((line, zscore));
+                }
+            }
+
+            if (losowania.Count == 0)
+            {
+                Console.WriteLine("Brak danych do przetworzenia.");
+                return false;
+            }
+
+            double averageZScore = losowania.Average(l => l.ZScore);
+
+            // Sortowanie wg odległości od średniego z-score
+            var sortedLosowania = losowania.OrderBy(l => Math.Abs(l.ZScore - averageZScore)).ToList();
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine(headerLine);
+                foreach (var l in sortedLosowania)
+                    writer.WriteLine(l.Line);
+            }
+
+            Console.WriteLine($"Sortowanie zakończone. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function28_Dummy()
     {
         Console.WriteLine("Funkcja");
