@@ -2205,10 +2205,114 @@ class Program
         return true;
     }
 
-    static void Function19_Dummy()
+    static bool Function19_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 19: Analiza parzystości liczb w poszczególnych pozycjach losowania.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 19? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 19 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych5.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        int[] evenCountByPosition = new int[6];
+        int[] oddCountByPosition = new int[6];
+        int[] evenCountDistribution = new int[7]; // 0-6 parzystych liczb w całym losowaniu
+        int[] oddCountDistribution = new int[7];  // 0-6 nieparzystych liczb w całym losowaniu
+        int totalDrawings = 0;
+
+        try
+        {
+            foreach (var line in File.ReadLines(inputFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("---") || line.StartsWith("Lp."))
+                    continue;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 3) continue;
+
+                var numberStrings = parts[2].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (numberStrings.Length != 6) continue;
+
+                var numbers = numberStrings.Select(int.Parse).ToList();
+                totalDrawings++;
+
+                int evenInDraw = 0;
+                for (int i = 0; i < 6; i++)
+                {
+                    if (numbers[i] % 2 == 0)
+                    {
+                        evenCountByPosition[i]++;
+                        evenInDraw++;
+                    }
+                    else
+                    {
+                        oddCountByPosition[i]++;
+                    }
+                }
+
+                oddCountDistribution[6 - evenInDraw]++; // nieparzyste w całym losowaniu
+                evenCountDistribution[evenInDraw]++;
+            }
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                // Sekcja 1: parzystość w poszczególnych pozycjach
+                writer.WriteLine("Sekcja 1: Parzystość liczb w poszczególnych pozycjach (L1-L6)");
+                writer.WriteLine("Pozycja | Parzyste | Nieparzyste | % parzystych | % nieparzystych");
+                writer.WriteLine(new string('-', 70));
+                for (int i = 0; i < 6; i++)
+                {
+                    double percentEven = totalDrawings > 0 ? (double)evenCountByPosition[i] / totalDrawings * 100 : 0;
+                    double percentOdd = totalDrawings > 0 ? (double)oddCountByPosition[i] / totalDrawings * 100 : 0;
+                    writer.WriteLine($"L{i + 1,2} | {evenCountByPosition[i],7} | {oddCountByPosition[i],11} | {percentEven,12:F2}% | {percentOdd,14:F2}%");
+                }
+
+                writer.WriteLine();
+
+                // Sekcja 2a: parzystość całego losowania
+                writer.WriteLine("Sekcja 2a: Parzystość całego losowania (liczba parzystych)");
+                writer.WriteLine("Liczba parzystych | Ilość losowań | % losowań");
+                writer.WriteLine(new string('-', 50));
+                for (int i = 0; i <= 6; i++)
+                {
+                    double percent = totalDrawings > 0 ? (double)evenCountDistribution[i] / totalDrawings * 100 : 0;
+                    writer.WriteLine($"{i,17} | {evenCountDistribution[i],12} | {percent,9:F2}%");
+                }
+
+                writer.WriteLine();
+
+                // Sekcja 2b: nieparzystość całego losowania
+                writer.WriteLine("Sekcja 2b: Nieparzystość całego losowania (liczba nieparzystych)");
+                writer.WriteLine("Liczba nieparzystych | Ilość losowań | % losowań");
+                writer.WriteLine(new string('-', 50));
+                for (int i = 0; i <= 6; i++)
+                {
+                    double percent = totalDrawings > 0 ? (double)oddCountDistribution[i] / totalDrawings * 100 : 0;
+                    writer.WriteLine($"{i,20} | {oddCountDistribution[i],12} | {percent,9:F2}%");
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona pomyślnie. Raport zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function20_Dummy()
     {
         Console.WriteLine("Funkcja");
