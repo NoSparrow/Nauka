@@ -1642,9 +1642,154 @@ class Program
 
         return true;
     }
-    static void Function15_Dummy()
+    // Funkcja 15: Filtrowanie losowań na podstawie statystyk odległości.
+    static bool Function15_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 15: Filtrowanie danych z pliku TypowanieEtap4.txt.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 15? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 15 została pominięta.");
+            return true;
+        }
+
+        Console.WriteLine("Rozpoczynam filtrowanie danych...");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap4.txt");
+        string statsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych2.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap5.txt");
+
+        if (!File.Exists(inputFilePath) || !File.Exists(statsFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak wymaganych plików wejściowych. Upewnij się, że pliki {inputFilePath} i {statsFilePath} istnieją. Przerywam.");
+            return false;
+        }
+
+        // Krok 1: Wczytanie dozwolonych odległości z pliku statystycznego
+        var allowedDistances = new Dictionary<string, HashSet<double>>();
+        for (int i = 1; i <= 6; i++)
+        {
+            allowedDistances[$"L{i}"] = new HashSet<double>();
+        }
+
+        try
+        {
+            bool inStatsSection = false;
+            string currentHeader = "";
+            foreach (var line in File.ReadLines(statsFilePath))
+            {
+                if (line.Contains("Szczegółowe statystyki wszystkich odległości"))
+                {
+                    inStatsSection = true;
+                    continue;
+                }
+
+                if (inStatsSection)
+                {
+                    if (line.StartsWith("**L"))
+                    {
+                        currentHeader = line.Trim('*');
+                        continue;
+                    }
+
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count >= 3 && double.TryParse(parts[0], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double distance) && int.TryParse(parts[1], out int count))
+                    {
+                        if (count >= 300)
+                        {
+                            allowedDistances[currentHeader].Add(distance);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas wczytywania danych statystycznych: {ex.Message}. Przerywam.");
+            return false;
+        }
+
+        // Krok 2: Filtrowanie danych z pliku TypowanieEtap4.txt
+        try
+        {
+            int linesProcessed = 0;
+            int linesFiltered = 0;
+            bool isHeaderWritten = false;
+
+            int[] distanceIndexes = new int[6];
+
+            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (!isHeaderWritten)
+                    {
+                        writer.WriteLine(line);
+                        isHeaderWritten = true;
+
+                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            distanceIndexes[i - 1] = headerParts.FindIndex(h => h.Equals($"Odl. L{i}", StringComparison.OrdinalIgnoreCase));
+                        }
+
+                        bool allIndexesFound = true;
+                        foreach (var index in distanceIndexes)
+                        {
+                            if (index == -1)
+                            {
+                                allIndexesFound = false;
+                                break;
+                            }
+                        }
+                        if (!allIndexesFound)
+                        {
+                            Console.WriteLine("Błąd: Nie znaleziono wszystkich kolumn odległości (Odl. L1 - Odl. L6) w pliku wejściowym. Sprawdź format nagłówka.");
+                            return false;
+                        }
+                        continue;
+                    }
+
+                    linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+
+                    bool passesFilter = true;
+                    for (int i = 0; i < 6; i++)
+                    {
+                        if (double.TryParse(parts[distanceIndexes[i]].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out double distance))
+                        {
+                            string key = $"L{i + 1}";
+                            if (!allowedDistances[key].Contains(distance))
+                            {
+                                passesFilter = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (passesFilter)
+                    {
+                        writer.WriteLine(line);
+                        linesFiltered++;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas przetwarzania plików: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
     static void Function16_Dummy()
     {
