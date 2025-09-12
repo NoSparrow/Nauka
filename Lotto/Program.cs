@@ -2385,10 +2385,79 @@ class Program
         return true;
     }
 
-    static void Function21_Dummy()
+    static bool Function21_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 21: Analiza liczby niskich i wysokich w losowaniach Lotto.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 21? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 21 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych6.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        var combinationsCount = new Dictionary<string, int>();
+        int totalDrawings = 0;
+
+        try
+        {
+            foreach (var line in File.ReadLines(inputFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("---") || line.StartsWith("Lp."))
+                    continue;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 3) continue;
+
+                var numbers = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+                if (numbers.Count != 6) continue;
+
+                int lowCount = numbers.Count(n => n >= 1 && n <= 24);
+                int highCount = 6 - lowCount;
+                string key = lowCount + " niskie / " + highCount + " wysokie";
+
+                if (!combinationsCount.ContainsKey(key))
+                    combinationsCount[key] = 0;
+
+                combinationsCount[key]++;
+                totalDrawings++;
+            }
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine("Analiza liczby niskich i wysokich w losowaniach Lotto");
+                writer.WriteLine("=====================================================");
+                writer.WriteLine($"Liczba losowań: {totalDrawings}");
+                writer.WriteLine();
+                writer.WriteLine(string.Format("{0,-20} | {1,-8} | {2,-8}", "Kombinacja", "Ilość", "Procent"));
+                writer.WriteLine(new string('-', 40));
+
+                foreach (var pair in combinationsCount.OrderByDescending(p => p.Value))
+                {
+                    double percent = totalDrawings > 0 ? (double)pair.Value / totalDrawings * 100 : 0;
+                    writer.WriteLine(string.Format("{0,-20} | {1,-8} | {2:F2}%", pair.Key, pair.Value, percent));
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona. Raport zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function22_Dummy()
     {
         Console.WriteLine("Funkcja");
