@@ -1480,9 +1480,167 @@ class Program
 
         return true;
     }
-    static void Function14_Dummy()
+    // Funkcja 14: Analizuje występowanie odległości dla liczb L1-L6, zlicza powtórzenia i przedstawia statystyki.
+    static bool Function14_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 14: Analiza powtórzeń odległości dla liczb L1-L6.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 14? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 14 została pominięta.");
+            return true;
+        }
+
+        Console.WriteLine("Rozpoczynam analizę danych z pliku AnalizaDanych1.txt...");
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych1.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych2.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Plik wejściowy {inputFilePath} nie istnieje. Przerywam.");
+            return false;
+        }
+
+        var distanceCounts = new Dictionary<string, Dictionary<double, int>>();
+
+        for (int i = 1; i <= 6; i++)
+        {
+            distanceCounts[$"L{i}"] = new Dictionary<double, int>();
+        }
+
+        int totalLotteries = 0;
+        int lotteriesWithNoRepeats = 0;
+
+        try
+        {
+            using (var reader = new StreamReader(inputFilePath))
+            {
+                string headerLine = reader.ReadLine();
+                string separatorLine = reader.ReadLine();
+
+                var headerParts = headerLine.Split('|').Select(p => p.Trim()).ToList();
+
+                int[] distanceIndexes = new int[6];
+                bool allIndexesFound = true;
+                for (int i = 1; i <= 6; i++)
+                {
+                    distanceIndexes[i - 1] = headerParts.FindIndex(h => h.Equals($"Odl. L{i}", StringComparison.OrdinalIgnoreCase));
+                    if (distanceIndexes[i - 1] == -1)
+                    {
+                        allIndexesFound = false;
+                        break;
+                    }
+                }
+
+                if (!allIndexesFound)
+                {
+                    Console.WriteLine("Błąd: Nie znaleziono wszystkich kolumn odległości (Odl. L1 - Odl. L6) w pliku wejściowym. Przerywam.");
+                    return false;
+                }
+
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
+                    {
+                        continue;
+                    }
+
+                    totalLotteries++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+
+                    bool hasRepeatedDistanceInLottery = false;
+                    var currentLotteryDistances = new HashSet<double>();
+
+                    for (int i = 0; i < 6; i++)
+                    {
+                        if (double.TryParse(parts[distanceIndexes[i]].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture, out double distance))
+                        {
+                            string key = $"L{i + 1}";
+                            if (!distanceCounts[key].ContainsKey(distance))
+                            {
+                                distanceCounts[key][distance] = 0;
+                            }
+                            distanceCounts[key][distance]++;
+
+                            if (!currentLotteryDistances.Add(distance))
+                            {
+                                hasRepeatedDistanceInLottery = true;
+                            }
+                        }
+                    }
+
+                    if (!hasRepeatedDistanceInLottery)
+                    {
+                        lotteriesWithNoRepeats++;
+                    }
+                }
+            }
+
+            // Zapis wyników
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine("Statystyki powtórzeń odległości w losowaniach dla liczb L1-L6");
+                writer.WriteLine("------------------------------------------------------------------");
+                writer.WriteLine($"Całkowita liczba przeanalizowanych losowań: {totalLotteries}");
+                writer.WriteLine($"Liczba losowań bez powtórzeń odległości w ramach jednego losowania: {lotteriesWithNoRepeats}");
+                if (totalLotteries > 0)
+                {
+                    writer.WriteLine($"Procent losowań bez powtórzeń: {(double)lotteriesWithNoRepeats / totalLotteries * 100:F2}%");
+                }
+                writer.WriteLine();
+
+                // Raport unikalnych odległości
+                writer.WriteLine("Statystyki odległości, które wystąpiły tylko raz (unikalne)");
+                writer.WriteLine("---------------------------------------------------------------");
+                foreach (var entry in distanceCounts)
+                {
+                    var uniqueDistances = entry.Value.Where(d => d.Value == 1).OrderByDescending(d => d.Value);
+                    int uniqueCount = uniqueDistances.Count();
+
+                    writer.WriteLine($"**{entry.Key}**");
+                    writer.WriteLine($"{"Odległość",-15} | {"Liczba wystąpień",-15} | {"Procent",-15}");
+                    writer.WriteLine($"----------------------------------------------------");
+                    writer.WriteLine($"Liczba unikalnych odległości: {uniqueCount}");
+
+                    foreach (var distance in uniqueDistances)
+                    {
+                        double percentage = (double)distance.Value / totalLotteries * 100;
+                        writer.WriteLine($"{distance.Key,-15} | {distance.Value,-15} | {percentage:F2}%");
+                    }
+                    writer.WriteLine();
+                }
+
+                // Pełny raport powtórzeń
+                writer.WriteLine("Szczegółowe statystyki wszystkich odległości (posortowane od najczęstszych)");
+                writer.WriteLine("------------------------------------------------------------------");
+                foreach (var entry in distanceCounts)
+                {
+                    writer.WriteLine($"**{entry.Key}**");
+                    writer.WriteLine($"{"Odległość",-15} | {"Liczba wystąpień",-15} | {"Procent",-15}");
+                    writer.WriteLine($"----------------------------------------------------");
+
+                    var sortedDistances = entry.Value.OrderByDescending(d => d.Value);
+
+                    foreach (var distance in sortedDistances)
+                    {
+                        double percentage = (double)distance.Value / totalLotteries * 100;
+                        writer.WriteLine($"{distance.Key,-15} | {distance.Value,-15} | {percentage:F2}%");
+                    }
+                    writer.WriteLine();
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona pomyślnie. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Wystąpił błąd podczas przetwarzania pliku: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
     static void Function15_Dummy()
     {
