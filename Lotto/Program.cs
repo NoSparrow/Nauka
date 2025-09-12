@@ -1791,9 +1791,168 @@ class Program
 
         return true;
     }
-    static void Function16_Dummy()
+// Funkcja 16: Porównuje statystyki sum losowań z dwóch zbiorów danych.
+    static bool Function16_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 16: Porównanie statystyk sum losowań z plików PobraneDane.txt i TypowanieEtap5.txt.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 16? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 16 została pominięta.");
+            return true;
+        }
+
+        Console.WriteLine("Rozpoczynam analizę porównawczą sum losowań.");
+
+        string historyFilePath = Path.Combine(Path.GetDirectoryName(filePath), "PobraneDane.txt");
+        string filteredFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap5.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych3.txt");
+
+        if (!File.Exists(historyFilePath) || !File.Exists(filteredFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak wymaganych plików wejściowych. Upewnij się, że pliki {historyFilePath} i {filteredFilePath} istnieją. Przerywam.");
+            return false;
+        }
+
+        // Krok 1: Wczytanie i analiza sum z pliku historycznego
+        var historySums = new List<int>();
+        var historySumCounts = new Dictionary<int, int>();
+        try
+        {
+            foreach (var line in File.ReadLines(historyFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---") || line.Trim().StartsWith("Lp."))
+                {
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count >= 3)
+                {
+                    var numberParts = parts[2].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    if (numberParts.Count == 6)
+                    {
+                        int sum = 0;
+                        foreach (var numStr in numberParts)
+                        {
+                            if (int.TryParse(numStr, out int number))
+                            {
+                                sum += number;
+                            }
+                        }
+                        historySums.Add(sum);
+                        if (!historySumCounts.ContainsKey(sum))
+                        {
+                            historySumCounts[sum] = 0;
+                        }
+                        historySumCounts[sum]++;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas wczytywania danych historycznych: {ex.Message}. Przerywam.");
+            return false;
+        }
+
+        // Krok 2: Wczytanie i analiza sum z przefiltrowanego pliku
+        var filteredSums = new List<int>();
+        var filteredSumCounts = new Dictionary<int, int>();
+        try
+        {
+            foreach (var line in File.ReadLines(filteredFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
+                {
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count > 6 && int.TryParse(parts[6], out int sum))
+                {
+                    filteredSums.Add(sum);
+                    if (!filteredSumCounts.ContainsKey(sum))
+                    {
+                        filteredSumCounts[sum] = 0;
+                    }
+                    filteredSumCounts[sum]++;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas wczytywania przefiltrowanych danych: {ex.Message}. Przerywam.");
+            return false;
+        }
+
+        // Krok 3: Zapis wyników do pliku AnalizaDanych3.txt
+        try
+        {
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine("Analiza porównawcza sum losowań");
+                writer.WriteLine("======================================");
+
+                // Sekcja dla danych historycznych
+                writer.WriteLine("Strona 1: Dane historyczne (PobraneDane.txt)");
+                writer.WriteLine("---------------------------------------------");
+                if (historySums.Count > 0)
+                {
+                    writer.WriteLine($"Liczba losowań: {historySums.Count}");
+                    writer.WriteLine($"Średnia suma: {historySums.Average():F2}");
+                    writer.WriteLine($"Minimalna suma: {historySums.Min()}");
+                    writer.WriteLine($"Maksymalna suma: {historySums.Max()}");
+                    double stDevHistory = Math.Sqrt(historySums.Sum(v => Math.Pow(v - historySums.Average(), 2)) / historySums.Count);
+                    writer.WriteLine($"Odchylenie standardowe: {stDevHistory:F2}");
+                    writer.WriteLine();
+
+                    writer.WriteLine("Częstość występowania poszczególnych sum:");
+                    writer.WriteLine($"{"Suma",-8} | {"Ilość",-8} | {"Procent",-10}");
+                    writer.WriteLine("-----------------------------------");
+                    var sortedHistorySums = historySumCounts.OrderByDescending(pair => pair.Value);
+                    foreach (var pair in sortedHistorySums)
+                    {
+                        double percentage = (double)pair.Value / historySums.Count * 100;
+                        writer.WriteLine($"{pair.Key,-8} | {pair.Value,-8} | {percentage:F2}%");
+                    }
+                }
+                writer.WriteLine();
+
+                // Sekcja dla danych przefiltrowanych
+                writer.WriteLine("Strona 2: Dane przefiltrowane (TypowanieEtap5.txt)");
+                writer.WriteLine("-------------------------------------------------");
+                if (filteredSums.Count > 0)
+                {
+                    writer.WriteLine($"Liczba losowań: {filteredSums.Count}");
+                    writer.WriteLine($"Średnia suma: {filteredSums.Average():F2}");
+                    writer.WriteLine($"Minimalna suma: {filteredSums.Min()}");
+                    writer.WriteLine($"Maksymalna suma: {filteredSums.Max()}");
+                    double stDevFiltered = Math.Sqrt(filteredSums.Sum(v => Math.Pow(v - filteredSums.Average(), 2)) / filteredSums.Count);
+                    writer.WriteLine($"Odchylenie standardowe: {stDevFiltered:F2}");
+                    writer.WriteLine();
+
+                    writer.WriteLine("Częstość występowania poszczególnych sum:");
+                    writer.WriteLine($"{"Suma",-8} | {"Ilość",-8} | {"Procent",-10}");
+                    writer.WriteLine("-----------------------------------");
+                    var sortedFilteredSums = filteredSumCounts.OrderByDescending(pair => pair.Value);
+                    foreach (var pair in sortedFilteredSums)
+                    {
+                        double percentage = (double)pair.Value / filteredSums.Count * 100;
+                        writer.WriteLine($"{pair.Key,-8} | {pair.Value,-8} | {percentage:F2}%");
+                    }
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona pomyślnie. Raport zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Wystąpił błąd podczas zapisu pliku: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
     static void Function17_Dummy()
     {
