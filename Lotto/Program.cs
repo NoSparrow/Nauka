@@ -90,6 +90,7 @@ class Program
         Function23_Dummy(); // Analiza liczb dziesiętnych, szczęśliwych i pechowych, wielokrotności liczby 5
         Function25_Dummy(); // Analiza rozkładu normalnego losowań według Z-score.
         Function28_Dummy(); // Analiza rozkładu sum wylosowanych liczb.
+        Function30_Dummy(); // Analiza: Czy wylosowane kombinacje powtarzają się?
 
 
 
@@ -129,7 +130,7 @@ class Program
 
         // ===================================================================================================================
 
-        Function30_Dummy();
+
         Function31_Dummy();
         Function32_Dummy();
         Function33_Dummy();
@@ -3191,10 +3192,99 @@ class Program
         return true;
     }
 
-    static void Function30_Dummy()
+    static bool Function30_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 30: Analiza powtórzeń wylosowanych kombinacji.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 30? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 30 została pominięta.");
+            return true;
+        }
+
+        string sourceFilePath = Path.Combine(Path.GetDirectoryName(filePath), "PobraneDane.txt");
+        string analysisFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Analiza_powtórzeń_kombinacji.txt");
+
+        if (!File.Exists(sourceFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku źródłowego {sourceFilePath}. Analiza nie może zostać wykonana.");
+            return false;
+        }
+
+        try
+        {
+            var combinationsCount = new Dictionary<string, int>();
+            int totalCombinations = 0;
+
+            foreach (var line in File.ReadLines(sourceFilePath))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("Lp.") || line.TrimStart().StartsWith("---"))
+                    continue;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 3) continue;
+
+                var numbers = parts[2]
+                    .Split(' ')
+                    .Where(s => int.TryParse(s, out _))
+                    .Select(int.Parse)
+                    .OrderBy(n => n)
+                    .ToList();
+
+                if (numbers.Count != 6) continue;
+
+                string combinationKey = string.Join(" ", numbers);
+
+                if (combinationsCount.ContainsKey(combinationKey))
+                    combinationsCount[combinationKey]++;
+                else
+                    combinationsCount[combinationKey] = 1;
+
+                totalCombinations++;
+            }
+
+            var outputLines = new List<string>
+        {
+            "===============================================================",
+            " ANALIZA POWTÓRZEŃ WYLOSOWANYCH KOMBINACJI ",
+            "===============================================================",
+            $"Łączna liczba wylosowanych kombinacji: {totalCombinations}",
+            ""
+        };
+
+            var repeatedCombinations = combinationsCount
+                .Where(kv => kv.Value > 1)
+                .OrderByDescending(kv => kv.Value);
+
+            if (!repeatedCombinations.Any())
+            {
+                outputLines.Add("Brak powtarzających się kombinacji w historii losowań.");
+            }
+            else
+            {
+                outputLines.Add("Liczba wystąpień | Udział procentowy | Kombinacja");
+                outputLines.Add("---------------------------------------------------------------");
+
+                foreach (var combination in repeatedCombinations)
+                {
+                    double percentage = (double)combination.Value / totalCombinations * 100;
+                    outputLines.Add($"{combination.Value,15} | {percentage,16:F2}% | {combination.Key}");
+                }
+            }
+
+            File.WriteAllLines(analysisFilePath, outputLines);
+
+            Console.WriteLine($"Analiza zakończona pomyślnie. Wyniki zapisano w pliku: {analysisFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
 
     static void Function31_Dummy()
     {
