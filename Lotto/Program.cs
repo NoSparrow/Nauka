@@ -192,7 +192,25 @@ class Program
         Console.WriteLine("Funkcja 1: Czy zachować domyślną lokalizację plików (/home/marcin/Pulpit/LottoCS/PobraneDane.txt)?");
         Console.WriteLine("Wybierz: 1. Tak, 2. Nie (podaj nową lokalizację), 3. Wyjście");
         string answer = GetValidOption(new string[] { "1", "2", "3" });
+
+
+
+
+
+
+        // Domyślna ścieżka do pliku (możesz ją zmienić na inną, jeśli chcesz).
         string defaultPath = "/home/marcin/Pulpit/LottoCS/PobraneDane.txt";
+
+
+
+
+
+
+
+
+
+
+
 
         if (answer == "1")
         {
