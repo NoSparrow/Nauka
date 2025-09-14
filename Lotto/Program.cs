@@ -3051,10 +3051,79 @@ class Program
         return "Pozostałe";
     }
 
-    static void Function29_Dummy()
+    static bool Function29_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 29: Filtrowanie losowań według rzadkich przedziałów sumy.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 29? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 29 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap10.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap11.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        var excludedSumRanges = new HashSet<string>
+        {
+            "30-49", "50-69", "70-89", "210-229", "230-249", "250-279"
+        };
+
+        try
+        {
+            int linesProcessed = 0;
+            int linesKept = 0;
+            string headerLine = "";
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                foreach (var line in File.ReadLines(inputFilePath))
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (line.StartsWith("L1") || line.Contains("Suma") || headerLine == "")
+                    {
+                        headerLine = line;
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    linesProcessed++;
+                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                    if (parts.Count < 6) continue;
+
+                    var numbers = parts.Take(6).Select(s => int.Parse(s)).ToList();
+                    int sum = numbers.Sum();
+                    string sumRange = GetSumRange(sum);
+
+                    if (!excludedSumRanges.Contains(sumRange))
+                    {
+                        writer.WriteLine(line);
+                        linesKept++;
+                    }
+                }
+            }
+            Console.WriteLine($"Filtrowanie zakończone. Przetworzono {linesProcessed} losowań, pozostawiono {linesKept}. Wyniki zapisano w: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas filtrowania: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
     static void Function30_Dummy()
     {
         Console.WriteLine("Funkcja");
