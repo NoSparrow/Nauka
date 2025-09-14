@@ -2954,10 +2954,103 @@ class Program
         return true;
     }
 
-    static void Function28_Dummy()
+    static bool Function28_Dummy()
     {
-        Console.WriteLine("Funkcja");
+        Console.WriteLine("Funkcja 28: Analiza rozkładu sum wylosowanych liczb.");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 28? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 28 została pominięta.");
+            return true;
+        }
+
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "PobraneDane.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych8.txt");
+
+        if (!File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            return false;
+        }
+
+        var sumRanges = new SortedDictionary<string, int>
+        {
+            { "30-49", 0 }, { "50-69", 0 }, { "70-89", 0 },
+            { "90-109", 0 }, { "110-129", 0 }, { "130-149", 0 },
+            { "150-169", 0 }, { "170-189", 0 }, { "190-209", 0 },
+            { "210-229", 0 }, { "230-249", 0 }, { "250-279", 0 }
+        };
+
+        int totalDrawings = 0;
+
+        try
+        {
+            foreach (var line in File.ReadLines(inputFilePath).Skip(2))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---") || line.Trim().StartsWith("Lp."))
+                    continue;
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 3) continue;
+
+                var numberStrings = parts[2].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (numberStrings.Length != 6) continue;
+
+                var numbers = numberStrings.Select(s => int.Parse(s)).ToList();
+                int sum = numbers.Sum();
+                totalDrawings++;
+
+                string rangeKey = GetSumRange(sum);
+                if (sumRanges.ContainsKey(rangeKey))
+                {
+                    sumRanges[rangeKey]++;
+                }
+            }
+
+            using (var writer = new StreamWriter(outputFilePath))
+            {
+                writer.WriteLine("# Analiza rozkładu sum losowań Lotto");
+                writer.WriteLine();
+                writer.WriteLine($"Liczba losowań: {totalDrawings}");
+                writer.WriteLine();
+                writer.WriteLine("## Przedział sumy | Ilość losowań | Udział %");
+                writer.WriteLine();
+
+                foreach (var pair in sumRanges)
+                {
+                    double percentage = totalDrawings > 0 ? (double)pair.Value / totalDrawings * 100 : 0.00;
+                    writer.WriteLine($"{pair.Key,-13} | {pair.Value,-13} | {percentage:F2}%");
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona. Raport zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas analizy: {ex.Message}");
+            return false;
+        }
+
+        return true;
     }
+
+    private static string GetSumRange(int sum)
+    {
+        if (sum >= 30 && sum <= 49) return "30-49";
+        if (sum >= 50 && sum <= 69) return "50-69";
+        if (sum >= 70 && sum <= 89) return "70-89";
+        if (sum >= 90 && sum <= 109) return "90-109";
+        if (sum >= 110 && sum <= 129) return "110-129";
+        if (sum >= 130 && sum <= 149) return "130-149";
+        if (sum >= 150 && sum <= 169) return "150-169";
+        if (sum >= 170 && sum <= 189) return "170-189";
+        if (sum >= 190 && sum <= 209) return "190-209";
+        if (sum >= 210 && sum <= 229) return "210-229";
+        if (sum >= 230 && sum <= 249) return "230-249";
+        if (sum >= 250 && sum <= 279) return "250-279";
+        return "Pozostałe";
+    }
+
     static void Function29_Dummy()
     {
         Console.WriteLine("Funkcja");
