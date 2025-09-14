@@ -3249,6 +3249,8 @@ class Program
             " ANALIZA POWTÓRZEŃ WYLOSOWANYCH KOMBINACJI ",
             "===============================================================",
             $"Łączna liczba wylosowanych kombinacji: {totalCombinations}",
+            $"Liczba unikalnych kombinacji: {combinationsCount.Count}",
+            $"Czy wystąpiły powtórzenia?: {(combinationsCount.Count < totalCombinations ? "TAK" : "NIE")}",
             ""
         };
 
@@ -3284,6 +3286,7 @@ class Program
 
         return true;
     }
+
 
 
     static void Function31_Dummy()
