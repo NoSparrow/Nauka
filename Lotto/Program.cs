@@ -88,7 +88,7 @@ class Program
         Function19_Dummy(); // Analiza parzystości liczb w poszczególnych pozycjach losowania.
         Function21_Dummy(); // Analiza liczby niskich i wysokich w losowaniach Lotto.
         Function23_Dummy(); // Analiza liczb dziesiętnych, szczęśliwych i pechowych, wielokrotności liczby 5
-        Function25_Dummy(); // Analiza rozkładu normalnego losowań według Z-score.
+                            // Function25_Dummy(); // Analiza rozkładu normalnego losowań według Z-score.
         Function28_Dummy(); // Analiza rozkładu sum wylosowanych liczb.
         Function30_Dummy(); // Analiza: Czy wylosowane kombinacje powtarzają się?
         Function31_Dummy(); // Analiza: Czy "mniejsze kombinacje" powtarzają się?
@@ -100,6 +100,9 @@ class Program
 
 
         // ============================          FILTROWANIE DANYCH       ===================================================
+
+
+        Function32_Dummy(); // Filtrowanie 12: losowań nie zawierjących kombinacji 4,3,2-elementowych z losowań historycznych.
 
         Function13_Dummy(); // Filtrowanie 4 losowań zawierających długie ciągi kolejnych liczb.
         Function26_Dummy(); // Filtrowanie 10 losowań zawierających liczby 1 i 49.
@@ -132,7 +135,6 @@ class Program
 
 
 
-        Function32_Dummy();
         Function33_Dummy();
         Function34_Dummy();
         Function35_Dummy();
@@ -3423,8 +3425,84 @@ class Program
 
     static void Function32_Dummy()
     {
-        Console.WriteLine("Funkcja 32");
+        Console.WriteLine("\n--- FILTROWANIE TYPÓW ZAWIERAJĄCYCH Mniejsze Kombinacje ---");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 32? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 32 została pominięta.");
+            return;
+        }
+
+        string smallCombFile = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaMniejszychKombinacji.txt");
+        if (!File.Exists(smallCombFile))
+        {
+            Console.WriteLine($"Błąd: Plik {smallCombFile} nie istnieje. Upewnij się, że Funkcja 31 została wcześniej uruchomiona.");
+            return;
+        }
+
+        // 1. Wczytanie mniejszych kombinacji
+        string[] lines = File.ReadAllLines(smallCombFile);
+        HashSet<string> smallCombinations = new HashSet<string>();
+        foreach (var line in lines)
+        {
+            var parts = line.Split('|');
+            if (parts.Length < 3) continue;
+            string combo = parts[2].Trim();
+            smallCombinations.Add(combo);
+        }
+
+        // 2. Wczytanie typowań
+        string typowaniaFile = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
+        if (!File.Exists(typowaniaFile))
+        {
+            Console.WriteLine($"Błąd: Plik {typowaniaFile} nie istnieje.");
+            return;
+        }
+
+        string[] typowania = File.ReadAllLines(typowaniaFile);
+        List<string> filtered = new List<string>();
+
+        foreach (var t in typowania)
+        {
+            string[] numbers = t.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            bool containsSmallCombo = false;
+
+            for (int len = 2; len <= 4; len++)
+            {
+                var subsets = GetCombinations(numbers, len);
+                foreach (var subset in subsets)
+                {
+                    string subCombo = string.Join(' ', subset.OrderBy(x => x));
+                    if (smallCombinations.Contains(subCombo))
+                    {
+                        containsSmallCombo = true;
+                        break;
+                    }
+                }
+                if (containsSmallCombo) break;
+            }
+
+            if (containsSmallCombo)
+                filtered.Add(t);
+        }
+
+        // 3. Zapis wyników
+        string outputFile = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1_Filtrowane.txt");
+        File.WriteAllLines(outputFile, filtered);
+        Console.WriteLine($"Zachowano {filtered.Count} losowań z {typowania.Length} wczytanych.");
     }
+
+    // Funkcja pomocnicza do generowania kombinacji (statyczna)
+    static IEnumerable<string[]> GetCombinations(string[] list, int length)
+    {
+        if (length == 1) return list.Select(x => new string[] { x });
+
+        return list.SelectMany((v, i) =>
+            GetCombinations(list.Skip(i + 1).ToArray(), length - 1)
+            .Select(c => (new string[] { v }).Concat(c).ToArray()));
+    }
+
+
 
     static void Function33_Dummy()
     {
