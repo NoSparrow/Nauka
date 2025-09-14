@@ -66,47 +66,90 @@ class Program
         // KROK 4: Obliczenia teoretyczne i zapis wyników.
         DomyślnaWariacjaiOdchylenie(); // Funkcja 4
 
-        // KROK 5: Przetwarzanie i analiza danych (obliczanie Z-score).
+        // KROK 5: Przetwarzanie i analiza danych (obliczanie Z-score) dla wyników historycznych.
         Function5_ProcessData();
+        Function6_Dummy(); // Generowanie wszystkich możliwych kombinacji
 
-        // KROKI 6-10: Puste funkcje (zapisane jako "Dummy", czyli atrapy).
-        // Są one przygotowane, aby można było dodać w nich dalsze operacje lub analizy.
-        Function6_Dummy();
-        Function7_Dummy();
-        Function8_Dummy();
-        Function9_Dummy();
-        Function10_Dummy();
-
-        Function11_Dummy();
-        Function12_Dummy();
-        Function13_Dummy();
-        Function14_Dummy();
-        Function15_Dummy();
-
-        Function16_Dummy();
-        Function17_Dummy();
-        Function18_Dummy();
-        Function19_Dummy();
-        Function20_Dummy();
-
-
-
-        Function21_Dummy();
-        Function22_Dummy();
-        Function23_Dummy();
-        Function24_Dummy();
-        Function25_Dummy();
+        // ==================================================================================================================
 
 
 
 
-        Function26_Dummy();
-        Function27_Dummy();
-        Function28_Dummy();
-        Function29_Dummy();
+
+
+        // ===================         ANALIZA DANYCH      ==================================================================  
+
+        Function7_Dummy(); // Analiza wszystkich możliwych kombinacji
+        Function8_Dummy(); // Analiza z pliku AnalizaDanych1.txt (Plik Pytania.txt)
+        Function12_Dummy(); // Analiza występowania par i ciągów liczb
+        Function14_Dummy(); // Analiza powtórzeń odległości dla liczb L1-L6.
+
+        Function17_Dummy(); // Analiza sum i odległości od wartości oczekiwanej (150).
+        Function19_Dummy(); // Analiza parzystości liczb w poszczególnych pozycjach losowania.
+        Function21_Dummy(); // Analiza liczby niskich i wysokich w losowaniach Lotto.
+        Function23_Dummy(); // Analiza liczb dziesiętnych, szczęśliwych i pechowych, wielokrotności liczby 5
+        Function25_Dummy(); // Analiza rozkładu normalnego losowań według Z-score.
+        Function28_Dummy(); // Analiza rozkładu sum wylosowanych liczb.
+
+
+
+
+
+
+
+
+        // ============================          FILTROWANIE DANYCH       ===================================================
+
+        Function13_Dummy(); // Filtrowanie 4 losowań zawierających długie ciągi kolejnych liczb.
+        Function26_Dummy(); // Filtrowanie 10 losowań zawierających liczby 1 i 49.
+        Function29_Dummy(); // Filtrowanie 11 losowań według rzadkich przedziałów sumy.
+
+
+        Function20_Dummy(); // Filtrowanie 7 losowań według liczby parzystych w całym losowaniu.
+        Function22_Dummy(); // Filtrowanie 8 losowań według liczby niskich i wysokich liczb.
+        Function24_Dummy(); // Filtrowanie 9 losowań według liczby liczb dziesiętnych, szczęśliwych, pechowych i wielokrotności 5.
+
+
+        Function9_Dummy(); // Filtrowanie 1 na podstawie Z-score losowania
+
+        Function10_Dummy(); // Filtrowanie 2 na podstawie Z-score liczb L1 L2 L3
+        Function11_Dummy(); // Filtrowanie 3 na podstawie Z-score liczb L4 L5 L6 Losowanie jest odrzucane, jeśli Z-score dla L4, L5 lub L6 jest dodatni
+        Function15_Dummy(); // Filtrowanie 5 na podstawie powtórzeń odległości
+        Function16_Dummy(); // Porównanie statystyk sum losowań z plików historycznych i teoretycznych.
+        Function18_Dummy(); // Filtrowanie 6 na podstawie odległości od wartości oczekiwanej (150).
+
+
+
+        // ============================          SORTOWANIE DANYCH       ===================================================
+        Function27_Dummy(); // Sortowanie losowań według z-score względem średniego z-score. (Filtrowanie 10)
+
+
+
+
+
+        // ===================================================================================================================
+
         Function30_Dummy();
-
-
+        Function31_Dummy();
+        Function32_Dummy();
+        Function33_Dummy();
+        Function34_Dummy();
+        Function35_Dummy();
+        Function36_Dummy();
+        Function37_Dummy();
+        Function38_Dummy();
+        Function39_Dummy();
+        Function40_Dummy();
+        Function41_Dummy();
+        Function42_Dummy();
+        Function43_Dummy();
+        Function44_Dummy();
+        Function45_Dummy();
+        Function46_Dummy();
+        Function47_Dummy();
+        Function48_Dummy();
+        Function49_Dummy();
+        Function50_Dummy();
 
 
 
@@ -536,6 +579,9 @@ class Program
 
         string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieMożliweKombinacje.txt");
         string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieKombinacjeZscore.txt");
+        string outputFilePath2 = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
+
+
 
         // Dane teoretyczne
         const double theoreticalMeanSingle = 25.0;
@@ -596,13 +642,26 @@ class Program
         try
         {
             File.WriteAllLines(outputFilePath, analysisLines);
-            Console.WriteLine($"Analiza zakończona! Wyniki zapisano w pliku: {outputFilePath}");
+            File.WriteAllLines(outputFilePath2, analysisLines);
+            Console.WriteLine($"Analiza zakończona! Wyniki zapisano w pliku: {outputFilePath} oraz {outputFilePath2}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Błąd podczas zapisu pliku: {outputFilePath}. Szczegóły: {ex.Message}");
         }
     }
+
+
+
+    // =======================================================================================================
+
+
+
+
+
+
+
+
 
     // Funkcja 8: Analiza statystyczna z pliku AnalizaDanych1.txt
     static void Function8_Dummy()
@@ -894,10 +953,25 @@ class Program
         return data.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
     }
 
-    // Funkcja 9: Filtrowanie kombinacji na podstawie analizy Z-score
+
+
+
+
+
+    // =======================================================================================================
+
+
+
+
+
+
+
+
+
+    // Funkcja 9: Filtrowanie kombinacji na podstawie TypowanieEtap1.txt
     static void Function9_Dummy()
     {
-        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku WszystkieKombinacjeZscore.txt na podstawie analizy Z-score z pliku Pytania.txt.");
+        Console.WriteLine("Funkcja 9: Filtrowanie kombinacji z pliku TypowanieEtap1.txt na podstawie analizy Z-score.");
 
         if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania? Wybierz: 1. Uruchom, 2. Pomiń"))
         {
@@ -905,24 +979,23 @@ class Program
             return;
         }
 
-        Console.WriteLine("Rozpoczynam filtrowanie danych z automatycznym odczytem wartości z pliku Pytania.txt.");
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        string allCombinationsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "WszystkieKombinacjeZscore.txt");
-        string questionsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Pytania.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
-
-        if (!File.Exists(allCombinationsFilePath))
+        if (!File.Exists(inputFilePath))
         {
-            Console.WriteLine("Błąd: Plik WszystkieKombinacjeZscore.txt nie istnieje. Uruchom najpierw Funkcję 7.");
+            Console.WriteLine("Błąd: Plik TypowanieEtap1.txt nie istnieje. Uruchom najpierw Funkcję 8.");
             return;
         }
+
+        string questionsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "Pytania.txt");
+
         if (!File.Exists(questionsFilePath))
         {
             Console.WriteLine("Błąd: Plik Pytania.txt nie istnieje. Uruchom najpierw Funkcję 8.");
             return;
         }
 
-        // 1. Odczytywanie wartości krytycznych z pliku Pytania.txt
+        // Odczyt minimalnego i maksymalnego Z-score
         double minZscoreLosowanie = 0;
         double maxZscoreLosowanie = 0;
 
@@ -949,34 +1022,23 @@ class Program
             var partsMax = maxLine.Split('|').Select(p => p.Trim()).ToList();
             var partsMin = minLine.Split('|').Select(p => p.Trim()).ToList();
 
-            if (partsMax.Count < 2 || partsMin.Count < 2)
+            if (!double.TryParse(partsMax[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out maxZscoreLosowanie) ||
+                !double.TryParse(partsMin[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out minZscoreLosowanie))
             {
-                Console.WriteLine("Błąd: Nieprawidłowy format wierszy z Z-score w pliku Pytania.txt.");
+                Console.WriteLine("Błąd parsowania Z-score w pliku Pytania.txt.");
                 return;
             }
 
-            // Weryfikacja odczytanych wartości
-            if (!double.TryParse(partsMax[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out maxZscoreLosowanie))
-            {
-                Console.WriteLine("BŁĄD PARSOWANIA: Nie można odczytać wartości maksymalnego Z-score. Sprawdź format pliku Pytania.txt.");
-                return;
-            }
-            if (!double.TryParse(partsMin[1].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out minZscoreLosowanie))
-            {
-                Console.WriteLine("BŁĄD PARSOWANIA: Nie można odczytać wartości minimalnego Z-score. Sprawdź format pliku Pytania.txt.");
-                return;
-            }
-
-            Console.WriteLine($"Odczytany minimalny Z-score losowania: {minZscoreLosowanie}");
-            Console.WriteLine($"Odczytany maksymalny Z-score losowania: {maxZscoreLosowanie}");
+            Console.WriteLine($"Odczytany minimalny Z-score: {minZscoreLosowanie}");
+            Console.WriteLine($"Odczytany maksymalny Z-score: {maxZscoreLosowanie}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas odczytu pliku Pytania.txt. Szczegóły: {ex.Message}");
+            Console.WriteLine($"Błąd podczas odczytu pliku Pytania.txt: {ex.Message}");
             return;
         }
 
-        // 2. Przetwarzanie dużego pliku liniowo
+        // Filtrowanie pliku TypowanieEtap1.txt
         try
         {
             int linesProcessed = 0;
@@ -984,52 +1046,58 @@ class Program
             bool isHeaderWritten = false;
             int zScoreColumnIndex = -1;
 
-            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            var filteredLines = new List<string>();
+
+            foreach (var line in File.ReadLines(inputFilePath))
             {
-                foreach (var line in File.ReadLines(allCombinationsFilePath))
+                if (!isHeaderWritten)
                 {
-                    if (!isHeaderWritten)
-                    {
-                        writer.WriteLine(line);
-                        isHeaderWritten = true;
+                    filteredLines.Add(line);
+                    isHeaderWritten = true;
 
-                        var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
-                        zScoreColumnIndex = headerParts.FindIndex(h => h.Trim() == "Z-score (losowania)");
-                        if (zScoreColumnIndex == -1)
-                        {
-                            Console.WriteLine("Błąd: Nie znaleziono kolumny 'Z-score (losowania)' w pliku WszystkieKombinacjeZscore.txt.");
-                            return;
-                        }
-                        continue;
-                    }
+                    var headerParts = line.Split('|').Select(p => p.Trim()).ToList();
+                    zScoreColumnIndex = headerParts.FindIndex(h => h.Trim() == "Z-score (losowania)");
 
-                    linesProcessed++;
-                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
-                    if (parts.Count <= zScoreColumnIndex || string.IsNullOrWhiteSpace(parts[zScoreColumnIndex]))
+                    if (zScoreColumnIndex == -1)
                     {
-                        continue;
+                        Console.WriteLine("Błąd: Nie znaleziono kolumny 'Z-score (losowania)' w pliku TypowanieEtap1.txt.");
+                        return;
                     }
+                    continue;
+                }
 
-                    double zScoreLosowanie;
-                    if (!double.TryParse(parts[zScoreColumnIndex].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreLosowanie))
-                    {
-                        continue;
-                    }
+                linesProcessed++;
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count <= zScoreColumnIndex || string.IsNullOrWhiteSpace(parts[zScoreColumnIndex]))
+                    continue;
 
-                    if (zScoreLosowanie >= minZscoreLosowanie && zScoreLosowanie <= maxZscoreLosowanie)
-                    {
-                        writer.WriteLine(line);
-                        linesFiltered++;
-                    }
+                if (!double.TryParse(parts[zScoreColumnIndex].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out double zScoreLosowanie))
+                    continue;
+
+                if (zScoreLosowanie >= minZscoreLosowanie && zScoreLosowanie <= maxZscoreLosowanie)
+                {
+                    filteredLines.Add(line);
+                    linesFiltered++;
                 }
             }
-            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+
+            // Nadpisanie tego samego pliku
+            File.WriteAllLines(inputFilePath, filteredLines);
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Plik TypowanieEtap1.txt został nadpisany.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas przetwarzania pliku: {allCombinationsFilePath}. Szczegóły: {ex.Message}");
+            Console.WriteLine($"Błąd podczas filtrowania pliku TypowanieEtap1.txt: {ex.Message}");
         }
     }
+
+
+
+
+
+
+
+
     // Funkcja 10: Filtrowanie danych z pliku TypowanieEtap1.txt na podstawie Z-score L1-L3
     static void Function10_Dummy()
     {
@@ -1131,7 +1199,7 @@ class Program
     {
         Console.WriteLine("Funkcja 11: Filtrowanie danych z pliku TypowanieEtap2.txt.");
 
-        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania danych? Wybierz: 1. Uruchom, 2. Pomiń"))
+        if (!ContinuePromptCustom("Czy chcesz uruchomić funkcję filtrowania danych? /n(Losowanie jest odrzucane, jeśli Z-score dla L4, L5 lub L6 jest dodatni)/n Wybierz: 1. Uruchom, 2. Pomiń"))
         {
             Console.WriteLine("Funkcja 11 została pominięta.");
             return true;
@@ -2535,7 +2603,7 @@ class Program
 
     static bool Function23_Dummy()
     {
-        Console.WriteLine("Funkcja 23: Zaawansowana analiza losowań Lotto.");
+        Console.WriteLine("Funkcja 23: Analiza liczb dziesiętnych, szczęśliwych i pechowych, wielokrotności liczby 5.");
 
         if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 23? Wybierz: 1. Uruchom, 2. Pomiń"))
         {
@@ -2858,7 +2926,7 @@ class Program
 
     static bool Function27_Dummy()
     {
-        Console.WriteLine("Funkcja 27: Sortowanie losowań według z-score względem średniego z-score (TypowanieEtap10.txt).");
+        Console.WriteLine("Funkcja 27: Sortowanie losowań według z-score względem średniego z-score");
 
         if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 27? Wybierz: 1. Uruchom, 2. Pomiń"))
         {
@@ -2867,7 +2935,7 @@ class Program
         }
 
         string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "RozkładNormalnyEtap10.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "SortowanieRozkładNormalny.txt");
 
         if (!File.Exists(inputFilePath))
         {
@@ -3110,6 +3178,105 @@ class Program
         Console.WriteLine("Funkcja");
     }
 
+    static void Function31_Dummy()
+    {
+        Console.WriteLine("Funkcja 31");
+    }
+
+    static void Function32_Dummy()
+    {
+        Console.WriteLine("Funkcja 32");
+    }
+
+    static void Function33_Dummy()
+    {
+        Console.WriteLine("Funkcja 33");
+    }
+
+    static void Function34_Dummy()
+    {
+        Console.WriteLine("Funkcja 34");
+    }
+
+    static void Function35_Dummy()
+    {
+        Console.WriteLine("Funkcja 35");
+    }
+
+    static void Function36_Dummy()
+    {
+        Console.WriteLine("Funkcja 36");
+    }
+
+    static void Function37_Dummy()
+    {
+        Console.WriteLine("Funkcja 37");
+    }
+
+    static void Function38_Dummy()
+    {
+        Console.WriteLine("Funkcja 38");
+    }
+
+    static void Function39_Dummy()
+    {
+        Console.WriteLine("Funkcja 39");
+    }
+
+    static void Function40_Dummy()
+    {
+        Console.WriteLine("Funkcja 40");
+    }
+
+    static void Function41_Dummy()
+    {
+        Console.WriteLine("Funkcja 41");
+    }
+
+    static void Function42_Dummy()
+    {
+        Console.WriteLine("Funkcja 42");
+    }
+
+    static void Function43_Dummy()
+    {
+        Console.WriteLine("Funkcja 43");
+    }
+
+    static void Function44_Dummy()
+    {
+        Console.WriteLine("Funkcja 44");
+    }
+
+    static void Function45_Dummy()
+    {
+        Console.WriteLine("Funkcja 45");
+    }
+
+    static void Function46_Dummy()
+    {
+        Console.WriteLine("Funkcja 46");
+    }
+
+    static void Function47_Dummy()
+    {
+        Console.WriteLine("Funkcja 47");
+    }
+
+    static void Function48_Dummy()
+    {
+        Console.WriteLine("Funkcja 48");
+    }
+
+    static void Function49_Dummy()
+    {
+        Console.WriteLine("Funkcja 49");
+    }
+
+    static void Function50_Dummy()
+    {
+        Console.WriteLine("Funkcja 50");
+    }
 
 
 
