@@ -91,7 +91,7 @@ class Program
         Function25_Dummy(); // Analiza rozkładu normalnego losowań według Z-score.
         Function28_Dummy(); // Analiza rozkładu sum wylosowanych liczb.
         Function30_Dummy(); // Analiza: Czy wylosowane kombinacje powtarzają się?
-
+        Function31_Dummy(); // Analiza: Czy "mniejsze kombinacje" powtarzają się?
 
 
 
@@ -131,7 +131,7 @@ class Program
         // ===================================================================================================================
 
 
-        Function31_Dummy();
+
         Function32_Dummy();
         Function33_Dummy();
         Function34_Dummy();
@@ -3289,10 +3289,137 @@ class Program
 
 
 
+    // Funkcja 31: Analiza powtórzeń mniejszych kombinacji z uwzględnieniem wystąpień w losowaniach
     static void Function31_Dummy()
     {
-        Console.WriteLine("Funkcja 31");
+        Console.WriteLine("Funkcja 31: Analiza powtórzeń mniejszych kombinacji (5-,4-,3-,2-elementowych).");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 31? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 31 została pominięta.");
+            return;
+        }
+
+        string sourceFilePath = Path.Combine(Path.GetDirectoryName(filePath), "PobraneDane.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaMniejszychKombinacji.txt");
+
+        if (!File.Exists(sourceFilePath))
+        {
+            Console.WriteLine($"Błąd: Brak pliku źródłowego {sourceFilePath}. Przerywam.");
+            return;
+        }
+
+        var allCombinations = new List<List<int>>();
+
+        // 1. Wczytywanie wszystkich kombinacji 6-liczbowych
+        foreach (var line in File.ReadAllLines(sourceFilePath))
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("Lp.") || line.TrimStart().StartsWith("---"))
+                continue;
+
+            var parts = line.Split('|').Select(p => p.Trim()).ToList();
+            if (parts.Count < 3) continue;
+
+            var numbers = parts[2].Split(' ').Select(s => int.TryParse(s, out int n) ? n : -1)
+                                  .Where(n => n > 0).OrderBy(n => n).ToList();
+            if (numbers.Count != 6) continue;
+
+            allCombinations.Add(numbers);
+        }
+
+        int totalDraws = allCombinations.Count;
+        if (totalDraws == 0)
+        {
+            Console.WriteLine("Brak kombinacji do analizy.");
+            return;
+        }
+
+        var outputLines = new List<string>();
+        outputLines.Add("===============================================================");
+        outputLines.Add(" ANALIZA POWTÓRZEŃ MNIEJSZYCH KOMBINACJI ");
+        outputLines.Add("===============================================================");
+        outputLines.Add($"Łączna liczba wczytanych losowań: {totalDraws}");
+        outputLines.Add("");
+
+        // 2. Funkcja pomocnicza do analizy kombinacji n-elementowych
+        void AnalyzeCombinations(int n)
+        {
+            outputLines.Add($"--- Kombinacje {n}-elementowe ---");
+
+            // Generujemy wszystkie n-elementowe podkombinacje dla każdej kombinacji
+            var allSubCombinations = new List<string>();
+            foreach (var combo in allCombinations)
+            {
+                var subCombos = GetCombinations(combo, n);
+                foreach (var sc in subCombos)
+                {
+                    var key = string.Join(" ", sc.OrderBy(x => x));
+                    allSubCombinations.Add(key);
+                }
+            }
+
+            int totalSubCombinations = allSubCombinations.Count;
+
+            // Liczymy wystąpienia każdej podkombinacji
+            var comboCounts = allSubCombinations.GroupBy(c => c)
+                                                .ToDictionary(g => g.Key, g => g.Count());
+
+            int uniqueCount = comboCounts.Count;
+            var repeated = comboCounts.Where(kv => kv.Value > 1)
+                                      .OrderByDescending(kv => kv.Value)
+                                      .ToList();
+
+            int repeatedDraws = allCombinations.Count(combo => GetCombinations(combo, n)
+                                                                .Any(sc => repeated.Any(r => r.Key == string.Join(" ", sc.OrderBy(x => x)))));
+
+            int totalRepeats = repeated.Sum(kv => kv.Value);
+
+            outputLines.Add($"Liczba unikalnych kombinacji {n}-liczbowych: {uniqueCount}");
+            outputLines.Add($"Liczba kombinacji powtarzających się: {repeated.Count} ({((double)repeatedDraws / totalDraws * 100):F2}% losowań)");
+            outputLines.Add($"Łączna liczba powtórzeń: {totalRepeats}");
+            outputLines.Add("");
+            outputLines.Add("Liczba wystąpień | Udział % | Kombinacja");
+            outputLines.Add("-------------------------------------------------");
+
+            foreach (var kv in repeated)
+            {
+                double percentOfRepeats = (double)kv.Value / totalRepeats * 100;
+                outputLines.Add($"{kv.Value,17} | {percentOfRepeats,7:F2}% | {kv.Key}");
+            }
+
+            outputLines.Add("");
+        }
+
+        // 3. Analiza dla kombinacji 5,4,3,2-elementowych
+        AnalyzeCombinations(5);
+        AnalyzeCombinations(4);
+        AnalyzeCombinations(3);
+        AnalyzeCombinations(2);
+
+        // 4. Zapis do pliku
+        try
+        {
+            File.WriteAllLines(outputFilePath, outputLines);
+            Console.WriteLine($"Analiza zakończona. Wyniki zapisano w pliku: {outputFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas zapisu pliku: {ex.Message}");
+        }
     }
+
+    // Funkcja pomocnicza: generowanie wszystkich kombinacji n-elementowych z listy
+    static IEnumerable<IEnumerable<T>> GetCombinations<T>(IEnumerable<T> list, int length)
+    {
+        if (length == 0) return new[] { new T[0] };
+        return list.SelectMany((e, i) =>
+            GetCombinations(list.Skip(i + 1), length - 1).Select(c => (new[] { e }).Concat(c))
+        );
+    }
+
+
+
+
 
     static void Function32_Dummy()
     {
