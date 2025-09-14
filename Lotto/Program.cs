@@ -1043,10 +1043,9 @@ class Program
 
         Console.WriteLine("Rozpoczynam dodatkowe filtrowanie danych, odrzucam wartości z dodatnim Z-score L1, L2, L3.");
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap2.txt");
+        string filePathToFilter = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(filePathToFilter))
         {
             Console.WriteLine("Błąd: Plik TypowanieEtap1.txt nie istnieje. Uruchom najpierw Funkcję 9.");
             return;
@@ -1054,6 +1053,8 @@ class Program
 
         try
         {
+            // Wczytaj wszystkie linie do pamięci, zanim zaczniesz zapisywać
+            var lines = File.ReadAllLines(filePathToFilter).ToList();
             int linesProcessed = 0;
             int linesFiltered = 0;
             bool isHeaderWritten = false;
@@ -1062,9 +1063,9 @@ class Program
             int zScoreL2Index = -1;
             int zScoreL3Index = -1;
 
-            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            using (StreamWriter writer = new StreamWriter(filePathToFilter))
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                foreach (var line in lines)
                 {
                     if (!isHeaderWritten)
                     {
@@ -1105,11 +1106,11 @@ class Program
                     }
                 }
             }
-            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {filePathToFilter}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas przetwarzania pliku: {inputFilePath}. Szczegóły: {ex.Message}");
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {filePathToFilter}. Szczegóły: {ex.Message}");
         }
     }
 
@@ -1138,17 +1139,18 @@ class Program
 
         Console.WriteLine("Rozpoczynam filtrowanie danych...");
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap2.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap3.txt");
+        string filePathToFilter = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(filePathToFilter))
         {
-            Console.WriteLine($"Błąd: Plik wejściowy {inputFilePath} nie istnieje. Uruchom najpierw poprzednie etapy typowania. Przerywam.");
+            Console.WriteLine($"Błąd: Plik wejściowy {filePathToFilter} nie istnieje. Uruchom najpierw poprzednie etapy typowania. Przerywam.");
             return false;
         }
 
         try
         {
+            // Wczytaj wszystkie linie do pamięci, zanim zaczniesz zapisywać
+            var lines = File.ReadAllLines(filePathToFilter).ToList();
             int linesProcessed = 0;
             int linesFiltered = 0;
             bool isHeaderWritten = false;
@@ -1158,9 +1160,9 @@ class Program
             int zScoreL5Index = -1;
             int zScoreL6Index = -1;
 
-            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            using (StreamWriter writer = new StreamWriter(filePathToFilter))
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                foreach (var line in lines)
                 {
                     if (!isHeaderWritten)
                     {
@@ -1179,9 +1181,9 @@ class Program
                         }
 
                         // Zapisz również separator
-                        if (File.Exists(inputFilePath) && File.ReadLines(inputFilePath).Count() > 1)
+                        if (lines.Count > 1)
                         {
-                            writer.WriteLine(File.ReadLines(inputFilePath).Skip(1).First());
+                            writer.WriteLine(lines[1]);
                         }
 
                         continue;
@@ -1214,16 +1216,17 @@ class Program
                 }
             }
 
-            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {filePathToFilter}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas przetwarzania pliku: {inputFilePath}. Szczegóły: {ex.Message}");
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {filePathToFilter}. Szczegóły: {ex.Message}");
             return false;
         }
 
         return true;
     }
+
     // Funkcja 12: Szczegółowa analiza występowania par i ciągów kolejnych liczb.
     static void Function12_Dummy()
     {
@@ -1370,17 +1373,18 @@ class Program
 
         Console.WriteLine("Rozpoczynam filtrowanie danych...");
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap3.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap4.txt");
+        string filePathToFilter = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(filePathToFilter))
         {
-            Console.WriteLine($"Błąd: Plik wejściowy {inputFilePath} nie istnieje. Uruchom najpierw poprzednie etapy typowania. Przerywam.");
+            Console.WriteLine($"Błąd: Plik wejściowy {filePathToFilter} nie istnieje. Uruchom najpierw poprzednie etapy typowania. Przerywam.");
             return false;
         }
 
         try
         {
+            // Wczytaj wszystkie linie do listy, zanim zaczniesz zapisywać
+            var lines = File.ReadAllLines(filePathToFilter).ToList();
             int linesProcessed = 0;
             int linesFiltered = 0;
             bool isHeaderWritten = false;
@@ -1393,9 +1397,9 @@ class Program
             int l5Index = -1;
             int l6Index = -1;
 
-            using (StreamWriter writer = new StreamWriter(outputFilePath))
+            using (StreamWriter writer = new StreamWriter(filePathToFilter))
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                foreach (var line in lines)
                 {
                     if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
                     {
@@ -1470,16 +1474,17 @@ class Program
                 }
             }
 
-            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiając {linesFiltered}. Wyniki zapisano w pliku: {filePathToFilter}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas przetwarzania pliku: {inputFilePath}. Szczegóły: {ex.Message}");
+            Console.WriteLine($"Błąd podczas przetwarzania pliku: {filePathToFilter}. Szczegóły: {ex.Message}");
             return false;
         }
 
         return true;
     }
+
     // Funkcja 14: Analizuje występowanie odległości dla liczb L1-L6, zlicza powtórzenia i przedstawia statystyki.
     static bool Function14_Dummy()
     {
@@ -1655,9 +1660,9 @@ class Program
 
         Console.WriteLine("Rozpoczynam filtrowanie danych...");
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap4.txt");
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
         string statsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych2.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap5.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
         if (!File.Exists(inputFilePath) || !File.Exists(statsFilePath))
         {
@@ -1718,9 +1723,12 @@ class Program
 
             int[] distanceIndexes = new int[6];
 
+            // Wczytaj wszystkie linie do listy, zanim zaczniesz zapisywać
+            var lines = File.ReadAllLines(inputFilePath).ToList();
+
             using (StreamWriter writer = new StreamWriter(outputFilePath))
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                foreach (var line in lines)
                 {
                     if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
                     {
@@ -1805,7 +1813,7 @@ class Program
         Console.WriteLine("Rozpoczynam analizę porównawczą sum losowań.");
 
         string historyFilePath = Path.Combine(Path.GetDirectoryName(filePath), "PobraneDane.txt");
-        string filteredFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap5.txt");
+        string filteredFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
         string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych3.txt");
 
         if (!File.Exists(historyFilePath) || !File.Exists(filteredFilePath))
@@ -2097,6 +2105,7 @@ class Program
 
         return true;
     }
+    // Funkcja 18: Filtrowanie danych z TypowanieEtap5.txt na podstawie odległości całkowitej (Odl. od 150).
     static bool Function18_Dummy()
     {
         Console.WriteLine("Funkcja 18: Filtrowanie danych z TypowanieEtap5.txt na podstawie odległości całkowitej (Odl. od 150).");
@@ -2107,9 +2116,9 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap5.txt");
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
         string statsFilePath = Path.Combine(Path.GetDirectoryName(filePath), "AnalizaDanych4.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap6.txt");
+        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
         if (!File.Exists(inputFilePath) || !File.Exists(statsFilePath))
         {
@@ -2157,9 +2166,12 @@ class Program
             bool isHeaderWritten = false;
             int distanceIndex = -1;
 
+            // Wczytaj wszystkie linie do listy, zanim zaczniesz zapisywać
+            var lines = File.ReadAllLines(inputFilePath).ToList();
+
             using (StreamWriter writer = new StreamWriter(outputFilePath))
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                foreach (var line in lines)
                 {
                     if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
                     {
@@ -2323,58 +2335,47 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap6.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap7.txt");
+        string fileFullPath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(fileFullPath))
         {
-            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {fileFullPath}. Przerywam.");
             return false;
         }
 
         try
         {
-            bool isHeaderWritten = false;
+            var lines = File.ReadAllLines(fileFullPath).ToList();
+            var output = new List<string>();
+            bool headerWritten = false;
 
-            using (var writer = new StreamWriter(outputFilePath))
+            foreach (var line in lines)
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
                 {
-                    if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("---"))
-                    {
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    if (!isHeaderWritten)
-                    {
-                        writer.WriteLine(line);
-                        isHeaderWritten = true;
-                        continue;
-                    }
-
-                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
-                    if (parts.Count < 6) continue;
-
-                    // Obliczamy liczbę parzystych w całym losowaniu (kolumny L1-L6)
-                    int evenCount = 0;
-                    for (int i = 0; i < 6; i++)
-                    {
-                        if (int.TryParse(parts[i], out int number))
-                        {
-                            if (number % 2 == 0) evenCount++;
-                        }
-                    }
-
-                    // Filtrujemy: usuwamy losowania z 0, 5 lub 6 liczbami parzystymi
-                    if (evenCount != 0 && evenCount != 5 && evenCount != 6)
-                    {
-                        writer.WriteLine(line);
-                    }
+                    output.Add(line);
+                    continue;
                 }
+
+                if (!headerWritten)
+                {
+                    output.Add(line); // zapisujemy nagłówek
+                    headerWritten = true;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 6) { output.Add(line); continue; }
+
+                int evenCount = parts.Take(6).Select(p => int.TryParse(p, out int num) ? num : -1)
+                                    .Count(n => n >= 0 && n % 2 == 0);
+
+                if (evenCount != 0 && evenCount != 5 && evenCount != 6)
+                    output.Add(line);
             }
 
-            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {outputFilePath}");
+            File.WriteAllLines(fileFullPath, output);
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {fileFullPath}");
         }
         catch (Exception ex)
         {
@@ -2468,63 +2469,59 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap7.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap8.txt");
+        string fileFullPath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(fileFullPath))
         {
-            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {fileFullPath}. Przerywam.");
             return false;
         }
 
-        var allowedCombinations = new HashSet<string> { "3 niskie / 3 wysokie", "2 niskie / 4 wysokie", "4 niskie / 2 wysokie", "1 niskie / 5 wysokie" };
+        var allowedCombinations = new HashSet<string>
+    {
+        "3 niskie / 3 wysokie",
+        "2 niskie / 4 wysokie",
+        "4 niskie / 2 wysokie",
+        "1 niskie / 5 wysokie"
+    };
 
         try
         {
-            bool isHeaderWritten = false;
+            var lines = File.ReadAllLines(fileFullPath).ToList();
+            var output = new List<string>();
+            bool headerWritten = false;
 
-            using (var writer = new StreamWriter(outputFilePath))
+            foreach (var line in lines)
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
                 {
-                    if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
-                    {
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    if (!isHeaderWritten)
-                    {
-                        writer.WriteLine(line);
-                        isHeaderWritten = true;
-                        continue;
-                    }
-
-                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
-                    if (parts.Count < 6) continue;
-
-                    // pobieramy dokładnie kolumny L1–L6
-                    var numbers = new List<int>();
-                    for (int i = 0; i < 6; i++)
-                    {
-                        if (int.TryParse(parts[i], out int num))
-                            numbers.Add(num);
-                    }
-
-                    if (numbers.Count != 6) continue;
-
-                    int lowCount = numbers.Count(n => n >= 1 && n <= 24);
-                    int highCount = 6 - lowCount;
-                    string combination = $"{lowCount} niskie / {highCount} wysokie";
-
-                    if (allowedCombinations.Contains(combination))
-                    {
-                        writer.WriteLine(line);
-                    }
+                    output.Add(line);
+                    continue;
                 }
+
+                if (!headerWritten)
+                {
+                    output.Add(line);
+                    headerWritten = true;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 6) { output.Add(line); continue; }
+
+                var numbers = parts.Take(6).Select(p => int.TryParse(p, out int n) ? n : -1).Where(n => n > 0).ToList();
+                if (numbers.Count != 6) { output.Add(line); continue; }
+
+                int lowCount = numbers.Count(n => n >= 1 && n <= 24);
+                int highCount = 6 - lowCount;
+                string combination = $"{lowCount} niskie / {highCount} wysokie";
+
+                if (allowedCombinations.Contains(combination))
+                    output.Add(line);
             }
 
-            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {outputFilePath}");
+            File.WriteAllLines(fileFullPath, output);
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {fileFullPath}");
         }
         catch (Exception ex)
         {
@@ -2534,6 +2531,7 @@ class Program
 
         return true;
     }
+
 
     static bool Function23_Dummy()
     {
@@ -2664,68 +2662,53 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap8.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap9.txt");
+        string fileFullPath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(fileFullPath))
         {
-            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {fileFullPath}. Przerywam.");
             return false;
         }
 
         try
         {
-            int linesProcessed = 0;
-            int linesFiltered = 0;
-            bool isHeaderWritten = false;
+            var lines = File.ReadAllLines(fileFullPath).ToList();
+            var output = new List<string>();
+            bool headerWritten = false;
 
-            using (var writer = new StreamWriter(outputFilePath))
+            foreach (var line in lines)
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
                 {
-                    if (string.IsNullOrWhiteSpace(line))
-                        continue;
-
-                    if (!isHeaderWritten)
-                    {
-                        writer.WriteLine(line); // zapis nagłówka
-                        isHeaderWritten = true;
-                        continue;
-                    }
-
-                    linesProcessed++;
-
-                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
-                    if (parts.Count < 6) continue; // zabezpieczenie przed niepoprawnymi liniami
-
-                    var numbers = parts.Take(6).Select(int.Parse).ToList(); // L1-L6
-
-                    // Warunek 1: para 1 i 49
-                    bool cond1 = numbers.Contains(1) && numbers.Contains(49);
-
-                    // Warunek 2: para/trójka/wszystkie cztery 10,20,30,40
-                    int[] specialNumbers = new int[] { 10, 20, 30, 40 };
-                    int hitsSpecial = numbers.Count(n => specialNumbers.Contains(n));
-                    bool cond2 = hitsSpecial >= 2;
-
-                    // Warunek 3: 3 lub więcej wielokrotności 5
-                    int[] multiples5 = Enumerable.Range(1, 9).Select(x => x * 5).ToArray();
-                    int hitsMultiples = numbers.Count(n => multiples5.Contains(n));
-                    bool cond3 = hitsMultiples >= 3;
-
-                    // Warunek 4: para 7 i 13
-                    bool cond4 = numbers.Contains(7) && numbers.Contains(13);
-
-                    // jeśli którykolwiek warunek spełniony, odrzucamy
-                    if (cond1 || cond2 || cond3 || cond4)
-                        continue;
-
-                    writer.WriteLine(line);
-                    linesFiltered++;
+                    output.Add(line);
+                    continue;
                 }
+
+                if (!headerWritten)
+                {
+                    output.Add(line);
+                    headerWritten = true;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 6) { output.Add(line); continue; }
+
+                var numbers = parts.Take(6).Select(p => int.TryParse(p, out int n) ? n : -1).Where(n => n > 0).ToList();
+                if (numbers.Count != 6) { output.Add(line); continue; }
+
+                bool cond1 = numbers.Contains(1) && numbers.Contains(49);
+                int hitsSpecial = numbers.Count(n => n == 10 || n == 20 || n == 30 || n == 40);
+                bool cond2 = hitsSpecial >= 2;
+                bool cond3 = numbers.Count(n => n % 5 == 0) >= 3;
+                bool cond4 = numbers.Contains(7) && numbers.Contains(13);
+
+                if (!(cond1 || cond2 || cond3 || cond4))
+                    output.Add(line);
             }
 
-            Console.WriteLine($"Filtrowanie zakończone! Przetworzono {linesProcessed} wierszy, pozostawiono {linesFiltered}. Wyniki zapisano w pliku: {outputFilePath}");
+            File.WriteAllLines(fileFullPath, output);
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {fileFullPath}");
         }
         catch (Exception ex)
         {
@@ -2735,6 +2718,7 @@ class Program
 
         return true;
     }
+
 
     static bool Function25_Dummy()
     {
@@ -2746,7 +2730,7 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap9.txt");
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
         string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "RozkładNormalnyEtap9.txt");
 
         if (!File.Exists(inputFilePath))
@@ -2820,57 +2804,47 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap9.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap10.txt");
+        string fileFullPath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(fileFullPath))
         {
-            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {fileFullPath}. Przerywam.");
             return false;
         }
 
         try
         {
-            int linesProcessed = 0;
-            int linesKept = 0;
-            string headerLine = "";
+            var lines = File.ReadAllLines(fileFullPath).ToList();
+            var output = new List<string>();
+            bool headerWritten = false;
 
-            using (var writer = new StreamWriter(outputFilePath))
+            foreach (var line in lines)
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
                 {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    if (line.StartsWith("L1") || line.Contains("Suma") || headerLine == "")
-                    {
-                        headerLine = line;
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
-                    if (parts.Count < 6)
-                    {
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    var numbers = parts.Take(6).Select(int.Parse).ToList(); // L1-L6
-                    linesProcessed++;
-
-                    if (numbers.Contains(1) || numbers.Contains(49))
-                        continue; // pomijamy wiersz
-
-                    writer.WriteLine(line);
-                    linesKept++;
+                    output.Add(line);
+                    continue;
                 }
+
+                if (!headerWritten)
+                {
+                    output.Add(line);
+                    headerWritten = true;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 6) { output.Add(line); continue; }
+
+                var numbers = parts.Take(6).Select(p => int.TryParse(p, out int n) ? n : -1).Where(n => n > 0).ToList();
+                if (numbers.Count != 6) { output.Add(line); continue; }
+
+                if (!numbers.Contains(1) && !numbers.Contains(49))
+                    output.Add(line);
             }
 
-            Console.WriteLine($"Filtrowanie zakończone. Przetworzono {linesProcessed} losowań, pozostawiono {linesKept}. Wyniki zapisano w: {outputFilePath}");
+            File.WriteAllLines(fileFullPath, output);
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {fileFullPath}");
         }
         catch (Exception ex)
         {
@@ -2880,6 +2854,7 @@ class Program
 
         return true;
     }
+
 
     static bool Function27_Dummy()
     {
@@ -2891,7 +2866,7 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap10.txt");
+        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
         string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "RozkładNormalnyEtap10.txt");
 
         if (!File.Exists(inputFilePath))
@@ -3061,59 +3036,65 @@ class Program
             return true;
         }
 
-        string inputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap10.txt");
-        string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap11.txt");
+        string fileFullPath = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
 
-        if (!File.Exists(inputFilePath))
+        if (!File.Exists(fileFullPath))
         {
-            Console.WriteLine($"Błąd: Brak pliku wejściowego {inputFilePath}. Przerywam.");
+            Console.WriteLine($"Błąd: Brak pliku wejściowego {fileFullPath}. Przerywam.");
             return false;
         }
 
-        var excludedSumRanges = new HashSet<string>
-        {
-            "30-49", "50-69", "70-89", "210-229", "230-249", "250-279"
-        };
+        var excludedSumRanges = new HashSet<string> { "30-49", "50-69", "70-89", "210-229", "230-249", "250-279" };
 
         try
         {
-            int linesProcessed = 0;
-            int linesKept = 0;
-            string headerLine = "";
+            var lines = File.ReadAllLines(fileFullPath).ToList();
+            var output = new List<string>();
+            bool headerWritten = false;
 
-            using (var writer = new StreamWriter(outputFilePath))
+            foreach (var line in lines)
             {
-                foreach (var line in File.ReadLines(inputFilePath))
+                if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("---"))
                 {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    if (line.StartsWith("L1") || line.Contains("Suma") || headerLine == "")
-                    {
-                        headerLine = line;
-                        writer.WriteLine(line);
-                        continue;
-                    }
-
-                    linesProcessed++;
-                    var parts = line.Split('|').Select(p => p.Trim()).ToList();
-                    if (parts.Count < 6) continue;
-
-                    var numbers = parts.Take(6).Select(s => int.Parse(s)).ToList();
-                    int sum = numbers.Sum();
-                    string sumRange = GetSumRange(sum);
-
-                    if (!excludedSumRanges.Contains(sumRange))
-                    {
-                        writer.WriteLine(line);
-                        linesKept++;
-                    }
+                    output.Add(line);
+                    continue;
                 }
+
+                if (!headerWritten)
+                {
+                    output.Add(line);
+                    headerWritten = true;
+                    continue;
+                }
+
+                var parts = line.Split('|').Select(p => p.Trim()).ToList();
+                if (parts.Count < 6) { output.Add(line); continue; }
+
+                var numbers = parts.Take(6).Select(p => int.TryParse(p, out int n) ? n : -1).Where(n => n > 0).ToList();
+                if (numbers.Count != 6) { output.Add(line); continue; }
+
+                int sum = numbers.Sum();
+
+                string sumRange =
+                    sum < 50 ? "30-49" :
+                    sum < 70 ? "50-69" :
+                    sum < 90 ? "70-89" :
+                    sum < 110 ? "90-109" :
+                    sum < 130 ? "110-129" :
+                    sum < 150 ? "130-149" :
+                    sum < 170 ? "150-169" :
+                    sum < 190 ? "170-189" :
+                    sum < 210 ? "190-209" :
+                    sum < 230 ? "210-229" :
+                    sum < 250 ? "230-249" :
+                    sum < 280 ? "250-279" : "280+";
+
+                if (!excludedSumRanges.Contains(sumRange))
+                    output.Add(line);
             }
-            Console.WriteLine($"Filtrowanie zakończone. Przetworzono {linesProcessed} losowań, pozostawiono {linesKept}. Wyniki zapisano w: {outputFilePath}");
+
+            File.WriteAllLines(fileFullPath, output);
+            Console.WriteLine($"Filtrowanie zakończone. Wyniki zapisano w pliku: {fileFullPath}");
         }
         catch (Exception ex)
         {
