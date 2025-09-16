@@ -104,7 +104,7 @@ class Program
 
         Function33_Dummy(); // Filtrowanie 13 losowań, które już wystąpiły w historii.
 
-        Function32_Dummy(); // Filtrowanie 12: losowań nie zawierjących kombi1nacji 4,3,2-elementowych z losowań historycznych.
+        // Funkcja nie działa prawidłowo ::::::::   Function32_Dummy(); // Filtrowanie 12: losowań nie zawierjących kombi1nacji 4,3,2-elementowych z losowań historycznych.
 
         Function13_Dummy(); // Filtrowanie 4 losowań zawierających długie ciągi kolejnych liczb.
         Function26_Dummy(); // Filtrowanie 10 losowań zawierających liczby 1 i 49.
@@ -3421,8 +3421,8 @@ class Program
 
 
 
-
-
+    // Funkcja 32: filtrowanie typowań zawierających mniejsze kombinacje (2-,3-,4-elementowe)
+    // Nadpisuje plik TypowanieEtap1.txt
     static void Function32_Dummy()
     {
         Console.WriteLine("\n--- FILTROWANIE TYPÓW ZAWIERAJĄCYCH Mniejsze Kombinacje ---");
@@ -3441,17 +3441,19 @@ class Program
         }
 
         // 1. Wczytanie mniejszych kombinacji
-        string[] lines = File.ReadAllLines(smallCombFile);
         HashSet<string> smallCombinations = new HashSet<string>();
-        foreach (var line in lines)
+        foreach (var line in File.ReadLines(smallCombFile))
         {
+            if (string.IsNullOrWhiteSpace(line) || !line.Contains("|")) continue;
             var parts = line.Split('|');
             if (parts.Length < 3) continue;
-            string combo = parts[2].Trim();
-            smallCombinations.Add(combo);
+
+            string comboPart = parts[2].Trim();
+            if (string.IsNullOrWhiteSpace(comboPart) || !char.IsDigit(comboPart[0])) continue; // tylko linie z liczbami
+            smallCombinations.Add(comboPart);
         }
 
-        // 2. Wczytanie typowań
+        // 2. Przetwarzanie pliku wejściowego linia po linii
         string typowaniaFile = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1.txt");
         if (!File.Exists(typowaniaFile))
         {
@@ -3459,37 +3461,63 @@ class Program
             return;
         }
 
-        string[] typowania = File.ReadAllLines(typowaniaFile);
-        List<string> filtered = new List<string>();
+        string tempFile = typowaniaFile + ".tmp";
+        int kept = 0, total = 0;
 
-        foreach (var t in typowania)
+        using (var reader = new StreamReader(typowaniaFile))
+        using (var writer = new StreamWriter(tempFile))
         {
-            string[] numbers = t.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            bool containsSmallCombo = false;
-
-            for (int len = 2; len <= 4; len++)
+            while (!reader.EndOfStream)
             {
-                var subsets = GetCombinations(numbers, len);
-                foreach (var subset in subsets)
-                {
-                    string subCombo = string.Join(' ', subset.OrderBy(x => x));
-                    if (smallCombinations.Contains(subCombo))
-                    {
-                        containsSmallCombo = true;
-                        break;
-                    }
-                }
-                if (containsSmallCombo) break;
-            }
+                string line = reader.ReadLine();
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-            if (containsSmallCombo)
-                filtered.Add(t);
+                // kopiujemy nagłówek
+                if (line.StartsWith(" L1 ") || line.StartsWith("-"))
+                {
+                    writer.WriteLine(line);
+                    continue;
+                }
+
+                total++;
+                string[] cols = line.Split('|');
+                if (cols.Length < 6)
+                {
+                    writer.WriteLine(line); // linie, które nie zawierają liczb
+                    continue;
+                }
+
+                string[] numbers = cols.Take(6).Select(c => c.Trim()).ToArray();
+                bool containsSmallCombo = false;
+
+                for (int len = 2; len <= 4; len++)
+                {
+                    var subsets = GetCombinations(numbers, len);
+                    foreach (var subset in subsets)
+                    {
+                        string subCombo = string.Join(" ", subset.OrderBy(x => x));
+                        if (smallCombinations.Contains(subCombo))
+                        {
+                            containsSmallCombo = true;
+                            break;
+                        }
+                    }
+                    if (containsSmallCombo) break;
+                }
+
+                if (!containsSmallCombo)
+                {
+                    writer.WriteLine(line);
+                    kept++;
+                }
+            }
         }
 
-        // 3. Zapis wyników
-        string outputFile = Path.Combine(Path.GetDirectoryName(filePath), "TypowanieEtap1_Filtrowane.txt");
-        File.WriteAllLines(outputFile, filtered);
-        Console.WriteLine($"Zachowano {filtered.Count} losowań z {typowania.Length} wczytanych.");
+        // Zamiana plików
+        File.Delete(typowaniaFile);
+        File.Move(tempFile, typowaniaFile);
+
+        Console.WriteLine($"Zachowano {kept} losowań z {total} wczytanych.");
     }
 
     // Funkcja pomocnicza do generowania kombinacji (statyczna)
@@ -3501,6 +3529,9 @@ class Program
             GetCombinations(list.Skip(i + 1).ToArray(), length - 1)
             .Select(c => (new string[] { v }).Concat(c).ToArray()));
     }
+
+
+
 
 
 
