@@ -101,8 +101,9 @@ class Program
 
         // ============================          FILTROWANIE DANYCH       ===================================================
 
+        Function33_Dummy(); // Filtrowanie 13 losowań, które już wystąpiły w historii.
 
-        Function32_Dummy(); // Filtrowanie 12: losowań nie zawierjących kombinacji 4,3,2-elementowych z losowań historycznych.
+        Function32_Dummy(); // Filtrowanie 12: losowań nie zawierjących kombi1nacji 4,3,2-elementowych z losowań historycznych.
 
         Function13_Dummy(); // Filtrowanie 4 losowań zawierających długie ciągi kolejnych liczb.
         Function26_Dummy(); // Filtrowanie 10 losowań zawierających liczby 1 i 49.
@@ -135,7 +136,6 @@ class Program
 
 
 
-        Function33_Dummy();
         Function34_Dummy();
         Function35_Dummy();
         Function36_Dummy();
@@ -3504,10 +3504,119 @@ class Program
 
 
 
+    // Funkcja 33: usuwa z TypowanieEtap1.txt wszystkie kombinacje, które wystąpiły w PobraneDane.txt
     static void Function33_Dummy()
     {
-        Console.WriteLine("Funkcja 33");
+        Console.WriteLine("\n--- FUNKCJA 33: FILTROWANIE KOMBINACJI JUŻ WYSTĄPIONYCH ---");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 33? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 33 została pominięta.");
+            return;
+        }
+
+        string dir = Path.GetDirectoryName(filePath) ?? Environment.CurrentDirectory;
+        string historyFile = Path.Combine(dir, "PobraneDane.txt");
+        string typowaniaFile = Path.Combine(dir, "TypowanieEtap1.txt");
+
+        if (!File.Exists(historyFile) || !File.Exists(typowaniaFile))
+        {
+            Console.WriteLine("Błąd: brak wymaganego pliku (PobraneDane.txt lub TypowanieEtap1.txt).");
+            return;
+        }
+
+        try
+        {
+            // 1) Zbiór historycznych szóstek
+            var drawnSet = new HashSet<string>();
+
+            foreach (var line in File.ReadAllLines(historyFile))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (line.StartsWith("Lp.")) continue;
+
+                var parts = line.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(p => p.Trim()).ToArray();
+
+                if (parts.Length < 3) continue;
+
+                // trzecia kolumna to "zwycięska kombinacja"
+                var numbers = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(x => int.Parse(x))
+                                      .OrderBy(x => x)
+                                      .ToArray();
+
+                if (numbers.Length == 6)
+                {
+                    drawnSet.Add(string.Join(" ", numbers));
+                }
+            }
+
+            Console.WriteLine($"Historia zawiera {drawnSet.Count} unikalnych szóstek.");
+
+            // 2) Filtrowanie TypowanieEtap1.txt
+            string tempFile = typowaniaFile + ".tmp";
+            int removed = 0, kept = 0;
+            bool header = true;
+
+            using (var reader = new StreamReader(typowaniaFile))
+            using (var writer = new StreamWriter(tempFile, false))
+            {
+                string? line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        writer.WriteLine(line);
+                        continue;
+                    }
+
+                    if (header || line.StartsWith("---"))
+                    {
+                        writer.WriteLine(line);
+                        if (line.StartsWith("---")) header = false; // po separatorze kończy się nagłówek
+                        continue;
+                    }
+
+                    // wyciągamy pierwsze 6 kolumn = liczby
+                    var parts = line.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(p => p.Trim()).ToArray();
+
+                    if (parts.Length < 6)
+                    {
+                        writer.WriteLine(line);
+                        kept++;
+                        continue;
+                    }
+
+                    var numbers = parts.Take(6).Select(int.Parse).OrderBy(x => x).ToArray();
+                    string key = string.Join(" ", numbers);
+
+                    if (drawnSet.Contains(key))
+                    {
+                        removed++;
+                        continue; // pomijamy tę linię
+                    }
+                    else
+                    {
+                        writer.WriteLine(line);
+                        kept++;
+                    }
+                }
+            }
+
+            File.Delete(typowaniaFile);
+            File.Move(tempFile, typowaniaFile);
+
+            Console.WriteLine($"Filtrowanie zakończone. Usunięto {removed}, zachowano {kept}.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd: {ex.Message}");
+        }
     }
+
+
 
     static void Function34_Dummy()
     {
