@@ -92,6 +92,7 @@ class Program
         Function28_Dummy(); // Analiza rozkładu sum wylosowanych liczb.
         Function30_Dummy(); // Analiza: Czy wylosowane kombinacje powtarzają się?
         Function31_Dummy(); // Analiza: Czy "mniejsze kombinacje" powtarzają się?
+        Function34_Dummy(); // Analiza występowania liczb w losowaniach Lotto.
 
 
 
@@ -136,7 +137,6 @@ class Program
 
 
 
-        Function34_Dummy();
         Function35_Dummy();
         Function36_Dummy();
         Function37_Dummy();
@@ -3618,10 +3618,116 @@ class Program
 
 
 
+    // Funkcja 34: Statystyka wystąpień liczb w historii losowań
     static void Function34_Dummy()
     {
-        Console.WriteLine("Funkcja 34");
+        Console.WriteLine("\n--- FUNKCJA 34: STATYSTYKA WYSTĄPIEŃ LICZB ---");
+
+        if (!ContinuePromptCustom("Czy chcesz uruchomić Funkcję 34? Wybierz: 1. Uruchom, 2. Pomiń"))
+        {
+            Console.WriteLine("Funkcja 34 została pominięta.");
+            return;
+        }
+
+        string dir = Path.GetDirectoryName(filePath) ?? Environment.CurrentDirectory;
+        string historyFile = Path.Combine(dir, "PobraneDane.txt");
+        string outputFile = Path.Combine(dir, "StatystykaLiczb.txt");
+
+        if (!File.Exists(historyFile))
+        {
+            Console.WriteLine($"Błąd: brak pliku {historyFile}.");
+            return;
+        }
+
+        try
+        {
+            // 1) Wczytanie wszystkich losowań
+            var draws = new List<int[]>();
+
+            foreach (var line in File.ReadAllLines(historyFile))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (line.StartsWith("Lp.") || line.StartsWith("---")) continue;
+
+                var parts = line.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(p => p.Trim()).ToArray();
+
+                if (parts.Length < 3) continue;
+
+                var numbers = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(x => int.Parse(x))
+                                      .ToArray();
+
+                if (numbers.Length == 6)
+                    draws.Add(numbers);
+            }
+
+            if (draws.Count == 0)
+            {
+                Console.WriteLine("Nie udało się wczytać żadnych losowań.");
+                return;
+            }
+
+            Console.WriteLine($"Wczytano {draws.Count} losowań historycznych.");
+
+            using (var writer = new StreamWriter(outputFile, false))
+            {
+                // 2) Globalna statystyka
+                writer.WriteLine("=== GLOBALNA STATYSTYKA LICZB ===");
+                var globalCount = new int[50]; // indeksy 1–49
+                foreach (var draw in draws)
+                {
+                    foreach (var n in draw)
+                        globalCount[n]++;
+                }
+
+                int totalDraws = draws.Count;
+                for (int n = 1; n <= 49; n++)
+                {
+                    double perc = (double)globalCount[n] / (totalDraws * 6) * 100.0;
+                    writer.WriteLine($"{n,2}: {globalCount[n],5} razy, {perc,6:F2}%");
+                }
+
+                // 3) Statystyki w paczkach po 100 losowań
+                writer.WriteLine();
+                writer.WriteLine("=== STATYSTYKA W PACZKACH PO 100 LOSOWAŃ ===");
+
+                int batchSize = 100;
+                int batchCount = (int)Math.Ceiling((double)draws.Count / batchSize);
+
+                for (int b = 0; b < batchCount; b++)
+                {
+                    var batch = draws.Skip(b * batchSize).Take(batchSize).ToList();
+                    if (batch.Count == 0) continue;
+
+                    var batchCountArr = new int[50];
+                    foreach (var draw in batch)
+                    {
+                        foreach (var n in draw)
+                            batchCountArr[n]++;
+                    }
+
+                    int totalBatchDraws = batch.Count;
+
+                    writer.WriteLine($"\n--- Paczka {b + 1} (losowania {b * batchSize + 1} – {b * batchSize + batch.Count}) ---");
+
+                    for (int n = 1; n <= 49; n++)
+                    {
+                        double perc = (double)batchCountArr[n] / (totalBatchDraws * 6) * 100.0;
+                        if (batchCountArr[n] > 0)
+                            writer.WriteLine($"{n,2}: {batchCountArr[n],5} razy, {perc,6:F2}%");
+                    }
+                }
+            }
+
+            Console.WriteLine($"Analiza zakończona. Wyniki zapisano w pliku: {outputFile}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd: {ex.Message}");
+        }
     }
+
 
     static void Function35_Dummy()
     {
