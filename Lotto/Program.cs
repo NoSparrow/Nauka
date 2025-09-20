@@ -122,7 +122,7 @@ class Program
         Function11_Dummy(); // Filtrowanie 3 na podstawie Z-score liczb L4 L5 L6 Losowanie jest odrzucane, jeśli Z-score dla L4, L5 lub L6 jest dodatni
         Function15_Dummy(); // Filtrowanie 5 na podstawie powtórzeń odległości
         Function16_Dummy(); // Porównanie statystyk sum losowań z plików historycznych i teoretycznych.
-        Function18_Dummy(); // Filtrowanie 6 na podstawie odległości od wartości oczekiwanej (150).
+        // Chwilowe wyłączenie funkcji ze względu na usuwanie danych z ujemną wartością zscore   Function18_Dummy(); // Filtrowanie 6 na podstawie odległości od wartości oczekiwanej (150).
 
 
 
