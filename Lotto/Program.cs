@@ -1186,7 +1186,7 @@ class Program
                     if (!double.TryParse(parts[zScoreL3Index].Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture, out zScoreL3)) continue;
 
                     // Kluczowy warunek filtrowania
-                    bool isPositive = (zScoreL1 > 0 || zScoreL2 > 0 || zScoreL3 > 0);
+                    bool isPositive = (zScoreL1 > 0 || zScoreL2 > 0); // Usunięcie L3 z warunku -  || zScoreL3 > 0
 
                     if (!isPositive)
                     {
@@ -1295,7 +1295,7 @@ class Program
 
                     // Kluczowy warunek filtrowania
                     // Losowanie jest odrzucane, jeśli Z-score dla L4, L5 lub L6 jest dodatni.
-                    bool isPositive = (zScoreL4Value < 0 || zScoreL5Value < 0 || zScoreL6Value < 0);
+                    bool isPositive = (zScoreL5Value < 0 || zScoreL6Value < 0); // Usunięcie L4 z warunku - zScoreL4Value < 0 || 
 
                     if (!isPositive)
                     {
